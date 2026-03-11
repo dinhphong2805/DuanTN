@@ -8,7 +8,7 @@
         <span class="sep">/</span>
         <span class="current">Thanh toán</span>
       </div>
-      <h1 class="checkout-title">Thanh toán</h1>
+      <h1 class="checkout-title">Thanh Toán</h1>
     </header>
 
     <section v-if="cart.state.items.length === 0" class="empty">
