@@ -151,6 +151,25 @@ function toDisplayUrl(url) {
   return base + '/uploads/' + (url.replace(/^.*[/\\]/, '') || '')
 }
 
+function parseImageUrls(raw) {
+  if (!raw) return []
+  const txt = String(raw).trim()
+  if (!txt) return []
+  if (txt.startsWith('[')) {
+    try {
+      const arr = JSON.parse(txt)
+      if (Array.isArray(arr)) return arr.filter(Boolean).map(String)
+    } catch {}
+  }
+  if (txt.includes('|')) return txt.split('|').map(s => s.trim()).filter(Boolean)
+  return [txt]
+}
+
+function getPrimaryImage(raw) {
+  const urls = parseImageUrls(raw)
+  return urls.length ? toDisplayUrl(urls[0]) : ''
+}
+
 const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22 viewBox=%220 0 300 200%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22300%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%239ca3af%22 font-size=%2214%22 text-anchor=%22middle%22 dy=%22.3em%22%3EKh%C3%B4ng c%C3%B3 %E1%BA%A3nh%3C/text%3E%3C/svg%3E"
 
 function formatPrice(n) {
@@ -185,7 +204,7 @@ const results = computed(() => {
 
   return list.map((p) => ({
     id: p.id,
-    image: toDisplayUrl(p.imageUrl),
+    image: getPrimaryImage(p.imageUrl),
     brand: p.brand,
     name: p.name,
     category: p.category,

@@ -29,11 +29,27 @@
             </button>
           </div>
           <div class="hero">
+            <button
+              v-if="product.images.length > 1"
+              class="nav-btn nav-btn--left"
+              type="button"
+              @click="prevImage"
+            >
+              ‹
+            </button>
             <img
               :src="displayImage"
               :alt="product.name"
               @error="heroImgError = true"
             />
+            <button
+              v-if="product.images.length > 1"
+              class="nav-btn nav-btn--right"
+              type="button"
+              @click="nextImage"
+            >
+              ›
+            </button>
           </div>
         </div>
 
@@ -173,6 +189,20 @@ function toDisplayUrl(url) {
   return base + '/uploads/' + url.replace(/^.*[/\\]/, '') || ''
 }
 
+function parseImageUrls(raw) {
+  if (!raw) return []
+  const txt = String(raw).trim()
+  if (!txt) return []
+  if (txt.startsWith('[')) {
+    try {
+      const arr = JSON.parse(txt)
+      if (Array.isArray(arr)) return arr.filter(Boolean).map(String)
+    } catch {}
+  }
+  if (txt.includes('|')) return txt.split('|').map(s => s.trim()).filter(Boolean)
+  return [txt]
+}
+
 function formatPrice(n) {
   return (Number(n) || 0).toLocaleString('vi-VN') + ' VNĐ'
 }
@@ -193,7 +223,7 @@ async function loadProduct() {
       notFound.value = true
       return
     }
-    const mainImg = toDisplayUrl(p.imageUrl)
+    const images = parseImageUrls(p.imageUrl).map(toDisplayUrl).filter(Boolean)
     product.value = {
       id: p.id,
       name: p.name,
@@ -201,7 +231,7 @@ async function loadProduct() {
       brand: p.brand,
       category: p.category,
       description: p.description,
-      images: mainImg ? [mainImg] : [],
+      images,
       sizes: DEFAULT_SIZES,
     }
     activeIndex.value = 0
@@ -213,6 +243,18 @@ async function loadProduct() {
   } finally {
     loading.value = false
   }
+}
+
+function prevImage() {
+  if (!product.value?.images?.length) return
+  const total = product.value.images.length
+  activeIndex.value = (activeIndex.value - 1 + total) % total
+}
+
+function nextImage() {
+  if (!product.value?.images?.length) return
+  const total = product.value.images.length
+  activeIndex.value = (activeIndex.value + 1) % total
 }
 
 async function loadRecommendations() {
@@ -362,6 +404,7 @@ function addToCart() {
   border-radius: 18px;
   overflow: hidden;
   background: #f3f4f6;
+  position: relative;
 }
 
 .hero img {
@@ -369,6 +412,30 @@ function addToCart() {
   height: 520px;
   object-fit: cover;
   display: block;
+}
+
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(17, 24, 39, 0.65);
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.nav-btn--left {
+  left: 10px;
+}
+
+.nav-btn--right {
+  right: 10px;
 }
 
 .panel {
@@ -576,6 +643,7 @@ function addToCart() {
   color: #374151;
   font-size: 14px;
   line-height: 1.7;
+  white-space: pre-line;
 }
 
 .recommend {

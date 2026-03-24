@@ -31,6 +31,12 @@ const state = reactive({
   token: loadToken(),
 })
 
+// Backward compatibility: sessions created before TOKEN_KEY existed.
+if (!state.token && state.user?.id) {
+  state.token = `jwt-token-${state.user.id}`
+  saveToken(state.token)
+}
+
 export function useAuthStore() {
   const isLoggedIn = computed(() => !!state.user)
   const user = computed(() => state.user)
