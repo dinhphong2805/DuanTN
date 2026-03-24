@@ -64,13 +64,17 @@
             <label>Ảnh sản phẩm</label>
             <input
               type="file"
+              multiple
               accept="image/jpeg,image/png,image/gif,image/webp"
               @change="onFileSelect"
             />
-            <p v-if="form.imageUrl" class="img-preview">
-              <img :src="imagePreviewUrl" alt="Preview" class="preview-thumb" />
-              <span class="img-name">{{ form.imageUrl }}</span>
-            </p>
+            <span class="hint">Tối đa 10 ảnh. Ảnh đầu tiên là ảnh chính.</span>
+            <div v-if="form.images.length" class="img-grid">
+              <div v-for="(img, idx) in form.images" :key="img + idx" class="img-preview">
+                <img :src="toDisplayUrl(img)" alt="Preview" class="preview-thumb" />
+                <button type="button" class="btn-remove-img" @click="removeImageAt(idx)">Xóa</button>
+              </div>
+            </div>
           </div>
           <p v-if="formError" class="error">{{ formError }}</p>
           <div class="modal-actions">
@@ -86,6 +90,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { getProducts, createProduct, updateProduct, deleteProduct, uploadImage } from '../../api/services/adminService'
+import { API_BASE_URL } from '../../api/config'
 
 const products = ref([])
 const loading = ref(true)
@@ -100,12 +105,39 @@ const form = reactive({
   brand: '',
   category: '',
   description: '',
-  imageUrl: '',
+  images: [],
 })
-const imagePreviewUrl = ref('')
 
 function formatPrice(n) {
   return Number(n || 0).toLocaleString('vi-VN')
+}
+
+function toDisplayUrl(url) {
+  if (!url || typeof url !== 'string') return ''
+  const base = API_BASE_URL.replace(/\/api\/?$/, '') || 'http://localhost:8080'
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  if (url.startsWith('/')) return base + url
+  const filename = url.replace(/^.*[/\\]/, '')
+  return filename ? `${base}/uploads/${filename}` : ''
+}
+
+function parseImageUrls(raw) {
+  if (!raw) return []
+  const txt = String(raw).trim()
+  if (!txt) return []
+  if (txt.startsWith('[')) {
+    try {
+      const arr = JSON.parse(txt)
+      if (Array.isArray(arr)) return arr.filter(Boolean).map(String)
+    } catch {}
+  }
+  if (txt.includes('|')) return txt.split('|').map(s => s.trim()).filter(Boolean)
+  return [txt]
+}
+
+function serializeImageUrls(list) {
+  const urls = (list || []).filter(Boolean).map(String).slice(0, 10)
+  return urls.join('|')
 }
 
 async function load() {
@@ -120,26 +152,38 @@ async function load() {
 }
 
 async function onFileSelect(e) {
-  const file = e.target?.files?.[0]
-  if (!file) return
+  const files = Array.from(e.target?.files || [])
+  if (!files.length) return
   formError.value = ''
+  if (form.images.length + files.length > 10) {
+    formError.value = 'Tối đa 10 ảnh cho mỗi sản phẩm'
+    e.target.value = ''
+    return
+  }
   try {
-    const url = await uploadImage(file)
-    if (url) {
-      form.imageUrl = url
-      imagePreviewUrl.value = url
-    } else {
-      formError.value = 'Upload thất bại'
+    for (const file of files) {
+      const url = await uploadImage(file)
+      if (url) {
+        form.images.push(url)
+      } else {
+        formError.value = 'Upload thất bại'
+        break
+      }
     }
   } catch (err) {
     const d = err.response?.data
     formError.value = d?.error || d?.message || err.message || 'Không thể upload ảnh'
+  } finally {
+    e.target.value = ''
   }
+}
+
+function removeImageAt(idx) {
+  form.images.splice(idx, 1)
 }
 
 function openForm(p = null) {
   formError.value = ''
-  imagePreviewUrl.value = ''
   if (p) {
     editingId.value = p.id
     form.name = p.name || ''
@@ -147,8 +191,7 @@ function openForm(p = null) {
     form.brand = p.brand || ''
     form.category = p.category || ''
     form.description = p.description || ''
-    form.imageUrl = p.imageUrl || ''
-    imagePreviewUrl.value = p.imageUrl ? (p.imageUrl.startsWith('http') ? p.imageUrl : 'http://localhost:8080' + (p.imageUrl.startsWith('/') ? '' : '/') + p.imageUrl) : ''
+    form.images = parseImageUrls(p.imageUrl)
   } else {
     editingId.value = null
     form.name = ''
@@ -156,9 +199,8 @@ function openForm(p = null) {
     form.brand = ''
     form.category = ''
     form.description = ''
-    form.imageUrl = ''
+    form.images = []
   }
-  if (form.imageUrl) imagePreviewUrl.value = form.imageUrl
   showForm.value = true
 }
 
@@ -172,7 +214,7 @@ async function saveProduct() {
       brand: form.brand || null,
       category: form.category || null,
       description: form.description || null,
-      imageUrl: form.imageUrl || null,
+      imageUrl: serializeImageUrls(form.images) || null,
     }
     if (editingId.value) {
       await updateProduct(editingId.value, payload)
@@ -311,15 +353,23 @@ onMounted(load)
 .img-preview {
   margin-top: 8px;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .preview-thumb {
-  width: 60px;
-  height: 60px;
+  width: 100%;
+  height: 80px;
   object-fit: cover;
   border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.img-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .img-name {
@@ -327,6 +377,23 @@ onMounted(load)
   color: #6b7280;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.hint {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.btn-remove-img {
+  padding: 4px 8px;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
 }
 
 .error {
