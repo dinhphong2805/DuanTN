@@ -62,7 +62,16 @@
           <div class="size">
             <div class="size-head">
               <h2>Kích thước</h2>
-              <p class="size-note">Chọn size</p>
+              <div class="size-head-actions">
+                <p class="size-note">Chọn size</p>
+                <button
+                  type="button"
+                  class="size-chart-link"
+                  @click="sizeGuideOpen = true"
+                >
+                  Bảng size &amp; cách đo
+                </button>
+              </div>
             </div>
             <div class="size-grid">
               <button
@@ -140,11 +149,14 @@
         </div>
       </section>
     </template>
+
+    <ShoeSizeGuideModal v-model="sizeGuideOpen" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import ShoeSizeGuideModal from './ShoeSizeGuideModal.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCart } from '../cartStore'
 import { getProductByIdFromApi, getProductsFromApi } from '../api/services/productService'
@@ -163,6 +175,7 @@ const recommendations = ref([])
 const activeIndex = ref(0)
 const heroImgError = ref(false)
 const selectedSize = ref('38')
+const sizeGuideOpen = ref(false)
 
 const displayImage = computed(() => {
   if (heroImgError.value) return placeholderImg
@@ -478,8 +491,9 @@ function addToCart() {
 
 .size-head {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 10px;
 }
 
@@ -488,9 +502,34 @@ function addToCart() {
   font-weight: 700;
 }
 
+.size-head-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  text-align: right;
+}
+
 .size-note {
   font-size: 12px;
   color: #6b7280;
+  margin: 0;
+}
+
+.size-chart-link {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.size-chart-link:hover {
+  color: #1d4ed8;
 }
 
 .size-grid {
