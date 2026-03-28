@@ -12,3 +12,13 @@ export async function getOrdersByUser(userId) {
   const { data } = await client.get(`/orders/user/${userId}`)
   return data
 }
+
+export async function deleteOrder(id) {
+  const { data } = await client.delete(`/orders/${id}`)
+  return data
+}
+
+export async function checkOrderStatus(id) {
+  const { data } = await client.get(`/orders/${id}/status`)
+  return data
+}

@@ -31,10 +31,14 @@ adminApi.interceptors.request.use((config) => {
 });
 
 // --- Các hàm Export API ---
-export const getProducts = () => adminApi.get('/products').then(res => res.data);
+// export const getProducts = () => adminApi.get('/products').then(res => res.data);
+// --- Các hàm Export API ---
+export const getProducts = (params) => adminApi.get('/products', { params }).then(res => res.data);
+
 export const getBrandNames = () => adminApi.get('/brands/names').then(res => res.data);
 export const getCategoryNames = () => adminApi.get('/categories/names').then(res => res.data);
 export const createProduct = (p) => adminApi.post('/products', p).then(res => res.data);
+
 export const updateProduct = (id, p) => adminApi.put(`/products/${id}`, p).then(res => res.data);
 export const deleteProduct = (id) => adminApi.delete(`/products/${id}`).then(res => res.data);
 
