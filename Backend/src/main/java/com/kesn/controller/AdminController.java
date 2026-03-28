@@ -11,16 +11,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = {"http://localhost:5173", "http://127.0.0.1:5173"})
+@CrossOrigin(origins = {"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"})
 public class AdminController {
 
     private final ProductRepository productRepository;
@@ -43,9 +52,16 @@ public class AdminController {
 
     @GetMapping("/revenue-report")
     public ResponseEntity<Map<String, Object>> revenueReport(
-            @RequestParam(required = false, defaultValue = "10") Integer limit) {
+            @RequestParam(required = false, defaultValue = "10") Integer limit,
+            @RequestParam(required = false) Integer days,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
         int topN = Math.max(1, Math.min(limit == null ? 10 : limit, 100));
         List<Order> orders = orderRepository.findAll();
+        TimeRange reportRange = resolveReportRange(days, from, to);
+        if (reportRange != null) {
+            orders = filterOrdersInRange(orders, reportRange.start(), reportRange.end());
+        }
 
         BigDecimal totalRevenue = orders.stream()
                 .map(o -> o.getTotal() != null ? o.getTotal() : BigDecimal.ZERO)
@@ -148,9 +164,178 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * KPI, xu hướng so với kỳ trước (cùng độ dài), timeline doanh thu & đơn theo ngày.
+     */
+    @GetMapping("/analytics")
+    public ResponseEntity<Map<String, Object>> analytics(
+            @RequestParam(required = false, defaultValue = "30") Integer days,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
+        List<Order> all = orderRepository.findAll();
+        TimeRange current = resolveAnalyticsRange(days, from, to);
+        List<Order> curOrders = filterOrdersInRange(all, current.start(), current.end());
+
+        long spanSeconds = Math.max(ChronoUnit.SECONDS.between(current.start(), current.end()), 86400L);
+        Instant prevEnd = current.start();
+        Instant prevStart = prevEnd.minusSeconds(spanSeconds);
+        List<Order> prevOrders = filterOrdersInRange(all, prevStart, prevEnd);
+
+        BigDecimal revCur = sumOrderTotals(curOrders);
+        BigDecimal revPrev = sumOrderTotals(prevOrders);
+        int ordCur = curOrders.size();
+        int ordPrev = prevOrders.size();
+        long custCur = countDistinctCustomers(curOrders);
+        long custPrev = countDistinctCustomers(prevOrders);
+        long delCur = countDelivered(curOrders);
+        long delPrev = countDelivered(prevOrders);
+        double convCur = ordCur == 0 ? 0.0 : (100.0 * delCur / ordCur);
+        double convPrev = ordPrev == 0 ? 0.0 : (100.0 * delPrev / ordPrev);
+
+        Map<String, Object> kpis = new HashMap<>();
+        kpis.put("revenue", revCur);
+        kpis.put("orders", ordCur);
+        kpis.put("customers", custCur);
+        kpis.put("conversionRate", BigDecimal.valueOf(convCur).setScale(1, RoundingMode.HALF_UP));
+
+        Map<String, Object> trends = new HashMap<>();
+        trends.put("revenuePct", pctChange(revCur, revPrev));
+        trends.put("ordersPct", pctChangeInt(ordCur, ordPrev));
+        trends.put("customersPct", pctChangeLong(custCur, custPrev));
+        trends.put("conversionPts", BigDecimal.valueOf(convCur - convPrev).setScale(1, RoundingMode.HALF_UP));
+
+        List<Map<String, Object>> timeline = buildDailyTimeline(curOrders, current.start(), current.end());
+
+        Map<String, Object> rangeMeta = new HashMap<>();
+        rangeMeta.put("start", current.start().toString());
+        rangeMeta.put("end", current.end().toString());
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("kpis", kpis);
+        body.put("trends", trends);
+        body.put("timeline", timeline);
+        body.put("range", rangeMeta);
+        return ResponseEntity.ok(body);
+    }
+
+    private record TimeRange(Instant start, Instant end) {}
+
+    private static TimeRange resolveReportRange(Integer days, String fromIso, String toIso) {
+        try {
+            if (fromIso != null && !fromIso.isBlank() && toIso != null && !toIso.isBlank()) {
+                Instant fs = Instant.parse(fromIso.trim());
+                Instant te = Instant.parse(toIso.trim());
+                if (fs.isBefore(te)) return new TimeRange(fs, te);
+            }
+        } catch (Exception ignored) { }
+        if (days != null && days > 0) {
+            int d = Math.min(days, 365);
+            Instant end = Instant.now();
+            return new TimeRange(end.minus(d, ChronoUnit.DAYS), end);
+        }
+        return null;
+    }
+
+    private static TimeRange resolveAnalyticsRange(Integer daysParam, String from, String to) {
+        try {
+            if (from != null && !from.isBlank() && to != null && !to.isBlank()) {
+                Instant fs = Instant.parse(from.trim());
+                Instant te = Instant.parse(to.trim());
+                if (fs.isBefore(te)) return new TimeRange(fs, te);
+            }
+        } catch (Exception ignored) { }
+        int d = (daysParam == null || daysParam < 1) ? 30 : Math.min(daysParam, 365);
+        Instant end = Instant.now();
+        return new TimeRange(end.minus(d, ChronoUnit.DAYS), end);
+    }
+
+    private static List<Order> filterOrdersInRange(List<Order> all, Instant start, Instant end) {
+        return all.stream()
+                .filter(o -> {
+                    if (o.getCreatedAt() == null) return false;
+                    Instant t = o.getCreatedAt();
+                    return !t.isBefore(start) && !t.isAfter(end);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private static BigDecimal sumOrderTotals(List<Order> orders) {
+        return orders.stream()
+                .map(o -> o.getTotal() != null ? o.getTotal() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private static long countDelivered(List<Order> orders) {
+        return orders.stream().filter(o -> "delivered".equalsIgnoreCase(o.getStatus())).count();
+    }
+
+    private static long countDistinctCustomers(List<Order> orders) {
+        Set<String> set = new HashSet<>();
+        for (Order o : orders) {
+            if (o.getUserId() != null) {
+                set.add("user:" + o.getUserId());
+            } else if (o.getCustomerEmail() != null && !o.getCustomerEmail().isBlank()) {
+                set.add("email:" + o.getCustomerEmail().trim().toLowerCase());
+            } else {
+                String name = o.getCustomerName() != null ? o.getCustomerName().trim().toLowerCase() : "guest";
+                set.add("name:" + name);
+            }
+        }
+        return set.size();
+    }
+
+    private static double pctChange(BigDecimal cur, BigDecimal prev) {
+        if (prev == null || prev.compareTo(BigDecimal.ZERO) == 0) {
+            return cur.compareTo(BigDecimal.ZERO) > 0 ? 100.0 : 0.0;
+        }
+        return cur.subtract(prev).multiply(BigDecimal.valueOf(100))
+                .divide(prev, 1, RoundingMode.HALF_UP).doubleValue();
+    }
+
+    private static double pctChangeInt(int cur, int prev) {
+        if (prev == 0) return cur > 0 ? 100.0 : 0.0;
+        return (100.0 * (cur - prev) / prev);
+    }
+
+    private static double pctChangeLong(long cur, long prev) {
+        if (prev == 0) return cur > 0 ? 100.0 : 0.0;
+        return (100.0 * (cur - prev) / prev);
+    }
+
+    private static List<Map<String, Object>> buildDailyTimeline(List<Order> orders, Instant start, Instant end) {
+        ZoneId z = ZoneId.systemDefault();
+        LocalDate startD = start.atZone(z).toLocalDate();
+        LocalDate endD = end.atZone(z).toLocalDate();
+
+        Map<String, BigDecimal> rev = new TreeMap<>();
+        Map<String, Integer> ord = new TreeMap<>();
+        for (LocalDate d = startD; !d.isAfter(endD); d = d.plusDays(1)) {
+            String key = d.toString();
+            rev.put(key, BigDecimal.ZERO);
+            ord.put(key, 0);
+        }
+        for (Order o : orders) {
+            if (o.getCreatedAt() == null) continue;
+            LocalDate d = o.getCreatedAt().atZone(z).toLocalDate();
+            String key = d.toString();
+            if (!rev.containsKey(key)) continue;
+            rev.merge(key, o.getTotal() != null ? o.getTotal() : BigDecimal.ZERO, BigDecimal::add);
+            ord.merge(key, 1, Integer::sum);
+        }
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (String k : rev.keySet()) {
+            Map<String, Object> row = new HashMap<>();
+            row.put("date", k);
+            row.put("revenue", rev.get(k));
+            row.put("orders", ord.get(k));
+            out.add(row);
+        }
+        return out;
+    }
+
     @GetMapping("/products")
     public ResponseEntity<List<Product>> listProducts() {
-        return ResponseEntity.ok(productRepository.findAll());
+        return ResponseEntity.ok(productRepository.findAllByOrderByIdDesc());
     }
 
     @GetMapping("/products/{id}")

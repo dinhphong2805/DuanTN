@@ -32,16 +32,6 @@
         </div>
 
         <div class="filter-group">
-          <h2 class="filter-title">Đế giày</h2>
-          <select v-model="filterDeGiay" class="filter-select">
-            <option value="">Tất cả</option>
-            <option value="Mềm">Mềm</option>
-            <option value="Cứng">Cứng</option>
-            <option value="Siêu nhẹ">Siêu nhẹ</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
           <h2 class="filter-title">Chọn khoảng giá</h2>
           <select v-model="filterGia" class="filter-select">
             <option value="">Tất cả</option>
@@ -134,7 +124,6 @@ const loading = ref(true)
 const loadError = ref('')
 const productsRaw = ref([])
 const filterTheThao = ref('')
-const filterDeGiay = ref('')
 const filterGia = ref('')
 const filterThuongHieu = ref('')
 const filterSearch = ref('')

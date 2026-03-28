@@ -1,0 +1,11 @@
+# Maven / Java build
+Backend/target/
+
+# Frontend
+Frontend/node_modules/
+Frontend/dist/
+
+# IDE (tùy chọn — bỏ dòng .vscode nếu muốn đồng bộ cấu hình editor)
+.vscode/
+.idea/
+*.iml

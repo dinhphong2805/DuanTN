@@ -22,7 +22,7 @@ public class OrderItem {
 
     private Integer quantity = 1;
 
-    @Column(precision = 19, scale = 0)
+    @Column(name = "unit_price", precision = 19, scale = 0)
     private BigDecimal unitPrice = BigDecimal.ZERO;
 
     public Long getId() { return id; }

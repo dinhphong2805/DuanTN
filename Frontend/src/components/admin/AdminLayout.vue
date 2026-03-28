@@ -3,7 +3,7 @@
     <aside class="admin-sidebar">
       <div class="admin-brand">Kesn Admin</div>
       <nav class="admin-nav">
-        <router-link to="/admin" class="nav-link" active-class="active">Dashboard</router-link>
+        <router-link to="/admin" class="nav-link" active-class="active">Thống kê</router-link>
         <router-link to="/admin/products" class="nav-link" active-class="active">Sản phẩm</router-link>
         <router-link to="/admin/orders" class="nav-link" active-class="active">Đơn hàng</router-link>
         <router-link to="/admin/users" class="nav-link" active-class="active">Người dùng</router-link>

@@ -11,8 +11,20 @@ export async function getStats() {
   return data
 }
 
-export async function getRevenueReport(limit = 10) {
-  const { data } = await client.get('admin/revenue-report', { params: { limit } })
+export async function getRevenueReport(limit = 10, range = {}) {
+  const params = { limit, ...range }
+  const { data } = await client.get('admin/revenue-report', { params })
+  return data
+}
+
+export async function getAnalytics(range = {}) {
+  const { data } = await client.get('admin/analytics', { params: range })
+  return data
+}
+
+/** Thống kê tổng hợp: periodCards, bestSelling, orderStatusPie, growthPanel, lowStock */
+export async function getStatistics(params = {}) {
+  const { data } = await client.get('admin/statistics', { params })
   return data
 }
 

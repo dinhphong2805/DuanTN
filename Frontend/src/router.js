@@ -37,7 +37,7 @@ const routes = [
     component: AdminLayout,
     meta: { requiresAuth: true, requiresAdmin: true },
     children: [
-      { path: '', name: 'AdminDashboard', component: AdminDashboard },
+      { path: '', name: 'AdminStatistics', component: AdminDashboard },
       { path: 'products', name: 'AdminProducts', component: AdminProducts },
       { path: 'orders', name: 'AdminOrders', component: AdminOrders },
       { path: 'users', name: 'AdminUsers', component: AdminUsers },
