@@ -1,3 +1,4 @@
+
 package com.kesn.controller;
 
 import com.kesn.dto.AdminStatsDto;
@@ -7,6 +8,12 @@ import com.kesn.entity.Product;
 import com.kesn.repository.OrderRepository;
 import com.kesn.repository.ProductRepository;
 import com.kesn.repository.UserRepository;
+import com.kesn.repository.*;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +49,9 @@ public class AdminController {
         this.userRepository = userRepository;
     }
 
+    // ==========================================
+    // 1. THỐNG KÊ & DOANH THU 
+    // ==========================================
     @GetMapping("/stats")
     public ResponseEntity<AdminStatsDto> stats() {
         long products = productRepository.count();
@@ -333,9 +343,23 @@ public class AdminController {
         return out;
     }
 
+    // ==========================================
+    // 2. QUẢN LÝ SẢN PHẨM (phân trang & lọc; mới nhất lên đầu)
+    // ==========================================
     @GetMapping("/products")
-    public ResponseEntity<List<Product>> listProducts() {
-        return ResponseEntity.ok(productRepository.findAllByOrderByIdDesc());
+    public ResponseEntity<Page<Product>> listProducts(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Page<Product> productPage = productRepository.findAll(
+                ProductSpecification.filterProducts(keyword, category, brand, minPrice, maxPrice), pageable);
+        return ResponseEntity.ok(productPage);
     }
 
     @GetMapping("/products/{id}")
@@ -377,6 +401,9 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+    // ==========================================
+    // 3. QUẢN LÝ ĐƠN HÀNG 
+    // ==========================================
     @GetMapping("/orders")
     public ResponseEntity<List<Order>> listOrders() {
         return ResponseEntity.ok(orderRepository.findAll());
@@ -401,6 +428,9 @@ public class AdminController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // ==========================================
+    // CÁC CLASS HỖ TRỢ DOANH THU
+    // ==========================================
     private static class RevenueAgg {
         private BigDecimal revenue = BigDecimal.ZERO;
         private int quantity = 0;

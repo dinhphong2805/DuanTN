@@ -1,6 +1,9 @@
 # Maven / Java build
 Backend/target/
 
+# Ảnh upload local (không nên đẩy lên Git)
+Backend/uploads/
+
 # Frontend
 Frontend/node_modules/
 Frontend/dist/

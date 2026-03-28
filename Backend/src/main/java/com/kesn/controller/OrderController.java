@@ -44,11 +44,51 @@ public class OrderController {
         }
 
         Order saved = orderRepository.save(order);
-        return ResponseEntity.ok(Map.of("id", saved.getId(), "status", saved.getStatus(), "total", saved.getTotal()));
+
+        // --- THÊM LOGIC TẠO LINK QR TẠI ĐÂY ---
+        // Thông tin tài khoản nhận tiền (Bro nhớ sửa lại thành của bro)
+        String bankId = "MB"; // Mã ngân hàng: MB, VCB, ACB, TPB...
+        String accountNo = "4628112005"; // Số tài khoản
+        String accountName = "NGUYEN TRUNG NGUYEN"; // Tên chủ tài khoản (Viết không dấu)
+        
+        // Nội dung chuyển khoản: Để tránh trùng lặp, dùng tiền tố DH + ID đơn hàng
+        String addInfo = "DH" + saved.getId(); 
+        
+        // Số tiền chuyển (Bỏ phần thập phân nếu có)
+        String amount = String.valueOf(saved.getTotal().longValue());
+
+        // Tạo link VietQR động
+        String qrUrl = String.format(
+            "https://img.vietqr.io/image/%s-%s-compact2.png?amount=%s&addInfo=%s&accountName=%s",
+            bankId, accountNo, amount, addInfo, accountName.replace(" ", "%20")
+        );
+
+        // Trả thêm qrUrl về cho Vue
+        return ResponseEntity.ok(Map.of(
+            "id", saved.getId(), 
+            "status", saved.getStatus(), 
+            "total", saved.getTotal(),
+            "qrUrl", qrUrl // Dữ liệu mới thêm
+        ));
     }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Order>> getByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(orderRepository.findByUserIdOrderByCreatedAtDesc(userId));
+    }
+    
+ // API để hủy đơn hàng (xóa khỏi DB) khi khách không muốn thanh toán QR nữa
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteOrder(@PathVariable Long id) {
+        orderRepository.deleteById(id);
+        return ResponseEntity.ok(Map.of("message", "Đã hủy đơn hàng"));
+    }
+    
+ // API kiểm tra trạng thái của 1 đơn hàng (dành cho Frontend tự động gọi)
+    @GetMapping("/{id}/status")
+    public ResponseEntity<Map<String, String>> getOrderStatus(@PathVariable Long id) {
+        return orderRepository.findById(id)
+                .map(order -> ResponseEntity.ok(Map.of("status", order.getStatus())))
+                .orElse(ResponseEntity.notFound().build());
     }
 }

@@ -2,13 +2,13 @@ package com.kesn.repository;
 
 import com.kesn.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
-
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor; // Thêm cái này
 import java.util.List;
 
-public interface ProductRepository extends JpaRepository<Product, Long> {
-
+// Kế thừa thêm JpaSpecificationExecutor để chạy được bộ lọc động
+public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
     List<Product> findByNameContainingIgnoreCase(String name);
 
-    /** Admin: sản phẩm mới (id lớn hơn) lên đầu */
+    /** Admin / báo cáo: sản phẩm mới (id lớn hơn) lên đầu khi cần list đầy đủ */
     List<Product> findAllByOrderByIdDesc();
 }
