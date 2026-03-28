@@ -1,0 +1,3 @@
+# Sao chép thành application-local.properties (đã .gitignore)
+# gemini.api.key=
+# gemini.model=gemini-2.5-flash

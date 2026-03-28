@@ -2,6 +2,7 @@
   <div class="app">
     <AppHeader v-if="showHeader" />
     <router-view />
+    <SupportChatWidget />
   </div>
 </template>
 
@@ -9,6 +10,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
+import SupportChatWidget from './components/SupportChatWidget.vue'
 
 const route = useRoute()
 

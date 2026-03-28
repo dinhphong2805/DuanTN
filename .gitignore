@@ -1,14 +1,22 @@
 # Maven / Java build
 Backend/target/
 
-# Ảnh upload local (không nên đẩy lên Git)
+# Eclipse (mở project trực tiếp trong IDE) — không cần trên Git
+Backend/.classpath
+Backend/.project
+Backend/.settings/
+
+# Cấu hình local (API key Gemini, v.v.) — KHÔNG đẩy lên Git dù repo private
+# Dùng application-local.properties.example làm mẫu; mỗi máy tự tạo file local.
+Backend/src/main/resources/application-local.properties
+
+# Ảnh upload local
 Backend/uploads/
 
 # Frontend
 Frontend/node_modules/
 Frontend/dist/
 
-# IDE (tùy chọn — bỏ dòng .vscode nếu muốn đồng bộ cấu hình editor)
-.vscode/
+# IDE — repo private: có thể commit .vscode/ nếu muốn đồng bộ editor
 .idea/
 *.iml
