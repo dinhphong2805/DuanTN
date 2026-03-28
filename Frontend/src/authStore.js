@@ -41,7 +41,7 @@ export function useAuthStore() {
   const isLoggedIn = computed(() => !!state.user)
   const user = computed(() => state.user)
   const token = computed(() => state.token)
-  const isAdmin = computed(() => state.user?.role === 'admin' || state.user?.role === 'staff')
+  const isAdmin = computed(() => state.user?.role === 'admin')
 
   function login(userData, accessToken) {
     state.user = userData

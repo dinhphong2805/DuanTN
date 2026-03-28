@@ -47,7 +47,7 @@ public class AdminAuthFilter extends OncePerRequestFilter {
         }
 
         boolean isAdmin = userRepository.findById(userId)
-                .map(u -> "admin".equalsIgnoreCase(u.getRole()) || "staff".equalsIgnoreCase(u.getRole()))
+                .map(u -> "admin".equalsIgnoreCase(u.getRole()))
                 .orElse(false);
 
         if (!isAdmin) {

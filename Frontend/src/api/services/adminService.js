@@ -72,6 +72,16 @@ export async function getUsers() {
   return data
 }
 
+export async function updateUserProfile(id, payload) {
+  const { data } = await client.patch(`admin/users/${id}/profile`, payload)
+  return data
+}
+
+export async function updateUserRole(id, role) {
+  const { data } = await client.patch(`admin/users/${id}/role`, { role })
+  return data
+}
+
 export async function getVouchers() {
   const { data } = await client.get('admin/vouchers')
   return data

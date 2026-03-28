@@ -109,10 +109,7 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const user = computed(() => auth.state?.user)
-const isAdmin = computed(() => {
-  const r = auth.state?.user?.role
-  return r === 'admin' || r === 'staff'
-})
+const isAdmin = computed(() => auth.state?.user?.role === 'admin')
 
 function logout() {
   auth.logout()

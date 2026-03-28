@@ -58,7 +58,7 @@ router.beforeEach((to, _from, next) => {
   const auth = useAuthStore()
   const user = auth.state?.user
   const loggedIn = !!user
-  const admin = user?.role === 'admin' || user?.role === 'staff'
+  const admin = user?.role === 'admin'
   if (to.meta.requiresAuth && !loggedIn) {
     next({ path: '/login', query: { redirect: to.fullPath } })
     return

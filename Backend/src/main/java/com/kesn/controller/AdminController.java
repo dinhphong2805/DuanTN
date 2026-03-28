@@ -406,7 +406,7 @@ public class AdminController {
     // ==========================================
     @GetMapping("/orders")
     public ResponseEntity<List<Order>> listOrders() {
-        return ResponseEntity.ok(orderRepository.findAll());
+        return ResponseEntity.ok(orderRepository.findAllByOrderByCreatedAtDesc());
     }
 
     @GetMapping("/orders/{id}")
