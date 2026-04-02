@@ -25,11 +25,11 @@ const faqs = [
     a: 'Đơn hàng nội thành TP.HCM, Hà Nội thường giao trong 1-3 ngày. Các tỉnh khác 3-7 ngày tùy khu vực.',
   },
   {
-    q: 'Tôi có thể đổi trả sản phẩm không?',
+    q: 'Tôi có thể đổi trả  1 sản phẩm không?',
     a: 'Bạn có thể đổi trả trong vòng 7 ngày nếu sản phẩm chưa qua sử dụng, còn nguyên tem. Liên hệ hotline hoặc qua trang Liên hệ để được hỗ trợ.',
   },
   {
-    q: 'Làm sao để kiểm tra đơn hàng?',
+    q: 'Làm sao để kiểm tra  haha hàng?',
     a: 'Sau khi đặt hàng, bạn sẽ nhận mã đơn qua email. Vào trang Tài khoản > Lịch sử đơn hàng để theo dõi trạng thái.',
   },
   {
