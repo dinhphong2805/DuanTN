@@ -149,9 +149,13 @@ function submitSearch() {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap');
+
 .header-wrap {
-  background-color: #f3f4f6;
-  border-bottom: 1px solid #e5e7eb;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .app-header {
@@ -159,8 +163,8 @@ function submitSearch() {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 14px 40px;
-  max-width: 1400px;
+  padding: 14px 24px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
@@ -170,10 +174,10 @@ function submitSearch() {
 }
 
 .brand {
-  font-size: 20px;
-  font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.02em;
+  font-size: 19px;
+  font-weight: 800;
+  color: #0a0a0a;
+  letter-spacing: -0.03em;
 }
 
 .header-nav-center {
@@ -188,22 +192,24 @@ function submitSearch() {
 .nav-text {
   background: none;
   border: none;
-  padding: 6px 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: #4b5563;
+  padding: 8px 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6b7280;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: color 0.22s ease;
   position: relative;
 }
 
 .nav-text:hover {
-  color: #111827;
+  color: #0a0a0a;
 }
 
 .nav-text.active {
-  color: #111827;
-  font-weight: 600;
+  color: #0a0a0a;
+  font-weight: 700;
 }
 
 .nav-text.active::after {
@@ -214,7 +220,7 @@ function submitSearch() {
   bottom: 0;
   height: 2px;
   background: #111827;
-  border-radius: 1px;
+  border-radius: 0;
 }
 
 .header-actions {
@@ -277,13 +283,13 @@ function submitSearch() {
 }
 
 .search-expand {
-  border-top: 1px solid #e5e7eb;
-  background: #f3f4f6;
-  padding: 0 40px 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fafafa;
+  padding: 0 24px 16px;
 }
 
 .search-expand-inner {
-  max-width: 1400px;
+  max-width: 1280px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -295,9 +301,10 @@ function submitSearch() {
   flex: 1;
   max-width: 480px;
   padding: 10px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
   font-size: 14px;
+  font-family: inherit;
   background: #fff;
   color: #111827;
 }
@@ -305,16 +312,20 @@ function submitSearch() {
 .search-field:focus {
   outline: none;
   border-color: #111827;
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.08);
 }
 
 .search-submit {
   padding: 10px 20px;
   border: none;
-  border-radius: 10px;
+  border-radius: 2px;
   background: #111827;
   color: #fff;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: inherit;
   cursor: pointer;
   transition: background 0.2s ease;
 }

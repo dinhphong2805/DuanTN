@@ -324,10 +324,15 @@ function addToCart() {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap');
+
 .detail-page {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 24px 16px 72px;
+  padding: 28px 24px 80px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #0a0a0a;
 }
 
 .loading-msg,
@@ -557,12 +562,23 @@ function addToCart() {
   margin-top: 10px;
   width: 100%;
   border: none;
-  border-radius: 14px;
-  padding: 12px 14px;
-  background: #111827;
+  border-radius: 2px;
+  padding: 14px 16px;
+  background: #0a0a0a;
   color: #fff;
+  font-family: inherit;
   font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.cta:hover {
+  background: #1f2937;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px -8px rgba(15, 23, 42, 0.35);
 }
 
 .reviews-section {
@@ -690,30 +706,49 @@ function addToCart() {
 }
 
 .recommend h2 {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin-bottom: 16px;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 20px;
 }
 
 .card {
   cursor: pointer;
-  border-radius: 18px;
+  border-radius: 2px;
   overflow: hidden;
-  background: #f9fafb;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1), transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card:hover {
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 20px 44px -14px rgba(15, 23, 42, 0.14);
+  transform: translateY(-5px);
 }
 
 .card img {
   width: 100%;
-  height: 180px;
+  aspect-ratio: 4 / 5;
+  height: auto;
   object-fit: cover;
   display: block;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card:hover img {
+  transform: scale(1.05);
 }
 
 .card-body {
@@ -721,11 +756,15 @@ function addToCart() {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .card-brand {
-  font-size: 12px;
-  color: #6b7280;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9ca3af;
 }
 
 .card-name {
