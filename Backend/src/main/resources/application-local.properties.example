@@ -1,3 +1,8 @@
-# Sao chép thành application-local.properties (đã .gitignore)
+# File tùy chọn: application-local.properties (cùng thư mục)
+# Repo private: có thể commit application-local.properties chứa gemini.api.key để cả nhóm dùng chung.
+#
+# Lấy key: https://aistudio.google.com/apikey
 # gemini.api.key=
 # gemini.model=gemini-2.5-flash
+#
+# Hoặc dùng biến môi trường GEMINI_API_KEY (ghi đè khi set).

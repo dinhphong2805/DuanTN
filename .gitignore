@@ -6,10 +6,6 @@ Backend/.classpath
 Backend/.project
 Backend/.settings/
 
-# Cấu hình local (API key Gemini, v.v.) — KHÔNG đẩy lên Git dù repo private
-# Dùng application-local.properties.example làm mẫu; mỗi máy tự tạo file local.
-Backend/src/main/resources/application-local.properties
-
 # Ảnh upload local
 Backend/uploads/
 

@@ -6,7 +6,11 @@ import com.kesn.dto.SupportChatResponse;
 import com.kesn.service.GeminiSupportChatService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Locale;
@@ -14,7 +18,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/chat")
-@CrossOrigin(origins = {"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"})
 public class SupportChatController {
 
     private final GeminiSupportChatService geminiSupportChatService;
@@ -34,7 +37,9 @@ public class SupportChatController {
     public ResponseEntity<?> chat(@RequestBody SupportChatRequest req) {
         if (!geminiSupportChatService.isConfigured()) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(Map.of("message", "Chat AI chưa được cấu hình. Admin cần đặt GEMINI_API_KEY hoặc gemini.api.key trong cấu hình backend."));
+                    .body(Map.of("message",
+                            "Chat AI chưa được cấu hình. Đặt gemini.api.key trong application-local.properties "
+                                    + "hoặc biến môi trường GEMINI_API_KEY (https://aistudio.google.com/apikey)."));
         }
         List<ChatTurnDto> messages = req != null ? req.getMessages() : null;
         if (messages == null || messages.isEmpty()) {
@@ -80,7 +85,7 @@ public class SupportChatController {
                     + "(Admin: xem https://ai.google.dev/gemini-api/docs/rate-limits và mục Usage trên Google AI Studio.)";
         }
         if (lower.contains("api key not valid") || lower.contains("invalid api key")) {
-            return "API key Gemini không hợp lệ hoặc chưa bật API. Vui lòng kiểm tra lại key trong application-local.properties.";
+            return "API key Gemini không hợp lệ hoặc chưa bật API. Kiểm tra GEMINI_API_KEY hoặc gemini.api.key (file application-local.properties).";
         }
         return detail;
     }
