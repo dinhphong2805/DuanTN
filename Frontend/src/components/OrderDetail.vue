@@ -1,0 +1,770 @@
+<template>
+  <div class="order-detail-page">
+    <div class="order-detail-inner">
+      <nav class="breadcrumb" aria-label="Điều hướng">
+        <router-link class="breadcrumb-link" to="/profile?tab=orders">
+          <span class="breadcrumb-icon" aria-hidden="true">‹</span>
+          Lịch sử đơn hàng
+        </router-link>
+        <span class="breadcrumb-sep" aria-hidden="true">/</span>
+        <span class="breadcrumb-current">Đơn #{{ orderIdDisplay }}</span>
+      </nav>
+
+      <p class="page-eyebrow">Chi tiết đơn hàng</p>
+
+      <section v-if="loading" class="state state--loading">
+        <div class="spinner" aria-hidden="true" />
+        <p>Đang tải thông tin đơn hàng…</p>
+      </section>
+
+      <section v-else-if="error" class="state state--error">
+        <div class="state-icon state-icon--warn" aria-hidden="true">!</div>
+        <p class="state-msg">{{ error }}</p>
+        <router-link to="/profile?tab=orders" class="btn btn--primary">Quay lại danh sách</router-link>
+      </section>
+
+      <template v-else-if="order">
+        <header class="hero-panel">
+          <div class="hero-main">
+            <div class="hero-titles">
+              <h1 class="hero-title">
+                Đơn <span class="order-num">#{{ order.id }}</span>
+              </h1>
+              <p class="hero-meta">
+                <span class="meta-label">Đặt lúc</span>
+                <time :datetime="order.createdAt">{{ formatDateTime(order.createdAt) }}</time>
+              </p>
+            </div>
+            <span class="status-pill" :class="order.status">{{ statusText(order.status) }}</span>
+          </div>
+        </header>
+
+        <section class="panel panel--timeline" aria-label="Tiến trình đơn hàng">
+          <h2 class="panel-title">Tiến trình</h2>
+          <div class="timeline">
+            <div class="timeline-rail" aria-hidden="true" />
+            <div
+              v-for="(step, i) in timelineSteps"
+              :key="step.key"
+              class="timeline-step"
+              :class="{ done: step.done, current: step.current }"
+            >
+              <span class="timeline-dot-wrap">
+                <span class="timeline-dot" />
+              </span>
+              <span class="timeline-label">{{ step.label }}</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="two-col">
+          <section class="panel">
+            <h2 class="panel-title">Giao hàng &amp; liên hệ</h2>
+            <dl class="info-grid">
+              <div class="info-cell">
+                <dt>Người nhận</dt>
+                <dd>{{ order.customerName || '—' }}</dd>
+              </div>
+              <div class="info-cell">
+                <dt>Email</dt>
+                <dd>{{ order.customerEmail || '—' }}</dd>
+              </div>
+              <div class="info-cell">
+                <dt>Điện thoại</dt>
+                <dd>{{ order.customerPhone || '—' }}</dd>
+              </div>
+              <div class="info-cell info-cell--wide">
+                <dt>Địa chỉ giao hàng</dt>
+                <dd>{{ order.address || '—' }}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="panel panel--items">
+            <h2 class="panel-title">
+              Sản phẩm
+              <span class="panel-count">{{ (order.items || []).length }}</span>
+            </h2>
+            <div class="table-wrap">
+              <div class="table-head" role="row">
+                <span>Sản phẩm</span>
+                <span class="t-center">SL</span>
+                <span class="t-right">Đơn giá</span>
+                <span class="t-right">Thành tiền</span>
+              </div>
+              <ul class="table-body">
+                <li v-for="(item, i) in (order.items || [])" :key="i" class="table-row" role="row">
+                  <span class="cell-name">{{ item.productName || item.name || 'Sản phẩm' }}</span>
+                  <span class="cell-qty t-center">{{ item.quantity || item.qty || 1 }}</span>
+                  <span class="cell-price t-right tabular">{{ formatPrice(item.unitPrice || item.price || 0) }} đ</span>
+                  <span class="cell-sub t-right tabular strong">{{ formatPrice(lineTotal(item)) }} đ</span>
+                </li>
+              </ul>
+            </div>
+            <div class="total-strip">
+              <span class="total-label">Tổng thanh toán</span>
+              <span class="total-value tabular">{{ formatPrice(order.total) }} <small>VNĐ</small></span>
+            </div>
+          </section>
+        </div>
+
+        <footer class="action-bar">
+          <router-link to="/profile?tab=orders" class="btn btn--ghost">Danh sách đơn</router-link>
+          <router-link to="/product" class="btn btn--primary">Tiếp tục mua sắm</router-link>
+        </footer>
+      </template>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { resolveSessionUserId } from '../authStore'
+import { getOrderDetail } from '../api/services/orderService'
+
+const route = useRoute()
+
+const order = ref(null)
+const loading = ref(true)
+const error = ref('')
+
+const orderIdDisplay = computed(() => route.params.id || '—')
+
+function formatPrice(n) {
+  return Number(n).toLocaleString('vi-VN')
+}
+
+function formatDateTime(d) {
+  if (!d) return '—'
+  let date
+  if (typeof d === 'string') {
+    date = new Date(d)
+  } else if (Array.isArray(d)) {
+    return d.join('-')
+  } else {
+    date = new Date(d)
+  }
+  if (Number.isNaN(date.getTime())) return String(d)
+  return date.toLocaleString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function statusText(s) {
+  const map = {
+    pending: 'Chờ xử lý',
+    paid: 'Đã thanh toán',
+    shipping: 'Đang giao',
+    delivered: 'Đã giao',
+  }
+  return map[s] || s || '—'
+}
+
+function lineTotal(item) {
+  const q = item.quantity || item.qty || 1
+  const p = Number(item.unitPrice || item.price || 0)
+  return p * q
+}
+
+const timelineSteps = computed(() => {
+  const s = order.value?.status || 'pending'
+  const rank = { pending: 1, paid: 2, shipping: 3, delivered: 4 }
+  const r = rank[s] ?? 1
+  const steps = [
+    { key: 'placed', label: 'Đã đặt' },
+    { key: 'proc', label: 'Xử lý' },
+    { key: 'ship', label: 'Giao hàng' },
+    { key: 'done', label: 'Hoàn tất' },
+  ]
+  return steps.map((st, i) => {
+    const stepNum = i + 1
+    const done = stepNum < r || (stepNum === r && s === 'delivered')
+    const current = stepNum === r && s !== 'delivered'
+    return { ...st, done, current }
+  })
+})
+
+async function load() {
+  error.value = ''
+  order.value = null
+  const id = Number(route.params.id)
+  const userId = resolveSessionUserId()
+  if (!Number.isFinite(userId) || !Number.isFinite(id)) {
+    loading.value = false
+    error.value = 'Không tìm thấy đơn hàng hoặc bạn chưa đăng nhập. Hãy đăng nhập lại.'
+    return
+  }
+  loading.value = true
+  try {
+    const data = await getOrderDetail(id, userId)
+    order.value = data
+  } catch (e) {
+    const st = e.response?.status
+    if (st === 404) {
+      error.value = 'Không tìm thấy đơn hàng hoặc đơn không thuộc tài khoản của bạn.'
+    } else if (st === 400) {
+      error.value = 'Thiếu thông tin tài khoản. Vui lòng đăng xuất và đăng nhập lại.'
+    } else {
+      const msg = e.response?.data?.message
+      error.value = msg
+        ? String(msg)
+        : 'Không tải được chi tiết đơn. Kiểm tra backend đang chạy và thử lại.'
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+watch(
+  () => route.params.id,
+  () => load(),
+  { immediate: true }
+)
+</script>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.order-detail-page {
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  background: linear-gradient(180deg, #f8f9fb 0%, #f0f2f5 48%, #eceef2 100%);
+  min-height: calc(100vh - 120px);
+  color: #0f172a;
+}
+
+.order-detail-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px 88px;
+}
+
+.page-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin: 0 0 8px;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #475569;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 6px 0;
+  transition: color 0.15s;
+}
+
+.breadcrumb-link:hover {
+  color: #0f172a;
+}
+
+.breadcrumb-icon {
+  font-size: 18px;
+  line-height: 1;
+  margin-top: -1px;
+}
+
+.breadcrumb-sep {
+  color: #cbd5e1;
+  user-select: none;
+}
+
+.breadcrumb-current {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.state {
+  text-align: center;
+  padding: 56px 24px;
+  border-radius: 20px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 40px rgba(15, 23, 42, 0.06);
+}
+
+.state--loading p {
+  margin: 16px 0 0;
+  font-size: 15px;
+  color: #64748b;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  border: 3px solid #e2e8f0;
+  border-top-color: #0f172a;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.state--error .state-msg {
+  margin: 0 0 20px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #475569;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.state-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  border-radius: 14px;
+  font-size: 22px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.state-icon--warn {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.hero-panel {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 20px;
+  padding: 28px 28px 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 16px 48px rgba(15, 23, 42, 0.07);
+}
+
+.hero-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.hero-title {
+  font-size: clamp(22px, 4vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 10px;
+  line-height: 1.2;
+}
+
+.order-num {
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
+}
+
+.hero-meta {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.meta-label {
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.status-pill {
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.status-pill.pending {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.status-pill.paid {
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+
+.status-pill.shipping {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.status-pill.delivered {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 20px;
+  padding: 24px 26px 26px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 32px rgba(15, 23, 42, 0.05);
+}
+
+.panel--timeline {
+  margin-bottom: 20px;
+  padding-bottom: 28px;
+}
+
+.panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin: 0 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-count {
+  font-size: 12px;
+  font-weight: 800;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 10px;
+  border-radius: 999px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.timeline {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  padding: 8px 4px 0;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.timeline-rail {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 15px;
+  height: 2px;
+  background: #e2e8f0;
+  border-radius: 1px;
+}
+
+.timeline-step {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+  padding: 0 6px;
+}
+
+.timeline-dot-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.timeline-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #cbd5e1;
+  box-shadow: 0 0 0 4px #fff;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.timeline-step.done .timeline-dot {
+  background: #0f172a;
+  border-color: #0f172a;
+}
+
+.timeline-step.current .timeline-dot {
+  background: #fff;
+  border-color: #0f172a;
+  border-width: 3px;
+  width: 16px;
+  height: 16px;
+}
+
+.timeline-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  line-height: 1.35;
+  display: block;
+}
+
+.timeline-step.done .timeline-label,
+.timeline-step.current .timeline-label {
+  color: #334155;
+}
+
+.two-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.info-grid {
+  display: grid;
+  gap: 20px 24px;
+  margin: 0;
+}
+
+@media (min-width: 560px) {
+  .info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.info-cell dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 0 0 6px;
+}
+
+.info-cell dd {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.info-cell--wide {
+  grid-column: 1 / -1;
+}
+
+.table-wrap {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.table-head {
+  display: grid;
+  grid-template-columns: 1fr 44px minmax(92px, auto) minmax(104px, auto);
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.table-body {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 44px minmax(92px, auto) minmax(104px, auto);
+  gap: 12px;
+  padding: 16px;
+  align-items: center;
+  font-size: 14px;
+  border-top: 1px solid #f1f5f9;
+  transition: background 0.12s;
+}
+
+.table-row:hover {
+  background: #fafbfc;
+}
+
+.cell-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.t-center {
+  text-align: center;
+}
+
+.t-right {
+  text-align: right;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.strong {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.total-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 20px 4px 0;
+  border-top: 2px solid #0f172a;
+}
+
+.total-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.total-value {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.total-value small {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  margin-left: 4px;
+}
+
+.action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 8px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 24px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn--ghost {
+  background: #fff;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.btn--ghost:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.btn--primary {
+  background: #0f172a;
+  color: #fff;
+  border: 1px solid #0f172a;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
+}
+
+.btn--primary:hover {
+  background: #020617;
+  border-color: #020617;
+}
+
+.btn:focus-visible {
+  outline: 2px solid #0f172a;
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .table-head {
+    display: none;
+  }
+
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 18px 16px;
+  }
+
+  .cell-qty::before {
+    content: 'Số lượng: ';
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  .cell-price::before {
+    content: 'Đơn giá: ';
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  .cell-sub::before {
+    content: 'Thành tiền: ';
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  .t-center,
+  .t-right {
+    text-align: left;
+  }
+
+  .timeline-rail {
+    left: 8%;
+    right: 8%;
+  }
+
+  .timeline-label {
+    font-size: 10px;
+  }
+}
+</style>

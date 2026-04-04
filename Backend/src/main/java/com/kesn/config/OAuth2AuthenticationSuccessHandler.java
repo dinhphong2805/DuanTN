@@ -25,10 +25,20 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, 
                                         Authentication authentication) throws IOException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        String email = oAuth2User.getAttribute("email");
-        
-        // Tìm user từ Database
-        User user = userRepository.findByEmail(email).orElseThrow();
+        Object emailAttr = oAuth2User.getAttribute("email");
+        String email = emailAttr != null ? emailAttr.toString().trim() : null;
+        if (email == null || email.isEmpty()) {
+            getRedirectStrategy().sendRedirect(request, response,
+                    "http://localhost:5173/login?oauthError=no_email");
+            return;
+        }
+
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            getRedirectStrategy().sendRedirect(request, response,
+                    "http://localhost:5173/login?oauthError=user_not_found");
+            return;
+        }
 
         // Tạo Token (Thay thế bằng logic JWT thật của bạn nếu có)
         String token = "jwt-token-" + user.getId();
@@ -42,8 +52,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // Xây dựng URL Redirect về Frontend
         String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/oauth2/redirect")
                 .queryParam("token", token)
+                .queryParam("userId", user.getId())
                 .queryParam("email", user.getEmail())
-                .queryParam("fullName", encodedName) 
+                .queryParam("fullName", encodedName)
                 .queryParam("role", user.getRole())
                 .build()
                 .toUriString();

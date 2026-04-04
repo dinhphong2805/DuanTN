@@ -1,99 +1,161 @@
 <template>
   <div class="cart-page">
-    <header class="cart-header">
-      <div class="cart-breadcrumb">
-        <span class="crumb" @click="$router.push('/')">Trang chủ</span>
-        <span class="sep">/</span>
-        <span class="current">Giỏ hàng</span>
+    <div class="cart-promo" role="region" aria-label="Cam kết dịch vụ">
+      <div class="cart-promo-inner">
+        Miễn phí giao từ 3.000.000₫ · Đổi trả trong 14 ngày · Thanh toán an toàn
       </div>
-      <h1 class="cart-title">Giỏ hàng</h1>
-      <p class="cart-subtitle">Kiểm tra sản phẩm trước khi thanh toán.</p>
+    </div>
+
+    <header class="cart-hero">
+      <div class="cart-hero-inner">
+        <nav class="cart-breadcrumb" aria-label="Breadcrumb">
+          <button type="button" class="cart-crumb" @click="$router.push('/')">Trang chủ</button>
+          <span class="cart-sep" aria-hidden="true">/</span>
+          <span class="cart-current">Giỏ hàng</span>
+        </nav>
+        <p class="cart-eyebrow">Đơn hàng</p>
+        <h1 class="cart-title">Giỏ hàng</h1>
+        <p class="cart-subtitle">Kiểm tra sản phẩm và số lượng trước khi thanh toán.</p>
+      </div>
     </header>
 
-    <section v-if="cart.state.items.length === 0" class="empty">
-      <p class="empty-title">Giỏ hàng đang trống</p>
-      <button class="btn" type="button" @click="$router.push('/product')">
-        Xem sản phẩm
-      </button>
-    </section>
+    <div class="cart-shell">
+      <section v-if="cart.state.items.length === 0" class="empty">
+        <div class="empty-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 8h12l-1.2 12H7.2L6 8z" />
+            <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+          </svg>
+        </div>
+        <h2 class="empty-title">Giỏ hàng đang trống</h2>
+        <p class="empty-text">Thêm sản phẩm yêu thích để tiếp tục mua sắm.</p>
+        <button class="empty-btn" type="button" @click="$router.push('/product')">
+          Xem sản phẩm
+        </button>
+      </section>
 
-    <section v-else class="cart-layout">
-      <main class="cart-items">
-        <article v-for="it in cart.state.items" :key="it.key" class="item">
-          <img class="item-image" :src="it.image" :alt="it.name" />
+      <section v-else class="cart-layout">
+        <main class="cart-items" aria-label="Sản phẩm trong giỏ">
+          <article v-for="it in cart.state.items" :key="it.key" class="item">
+            <router-link :to="`/product/${it.id}`" class="item-media" tabindex="-1">
+              <img
+                class="item-image"
+                :src="resolveImage(it.image)"
+                :alt="it.name"
+                loading="lazy"
+                @error="onImgError"
+              />
+            </router-link>
 
-          <div class="item-body">
-            <div class="item-top">
-              <div>
-                <p class="item-brand">{{ it.brand }}</p>
-                <p class="item-name">{{ it.name }}</p>
-                <p class="item-meta">
-                  <span v-if="it.size">Size {{ it.size }}</span>
-                  <span v-else>Size: —</span>
-                </p>
+            <div class="item-body">
+              <div class="item-top">
+                <router-link :to="`/product/${it.id}`" class="item-text-link">
+                  <p class="item-brand">{{ it.brand || '—' }}</p>
+                  <h2 class="item-name">{{ it.name }}</h2>
+                  <p class="item-meta">
+                    <span v-if="it.size">Size {{ it.size }}</span>
+                    <span v-else>Size: —</span>
+                  </p>
+                </router-link>
+
+                <button
+                  class="item-remove"
+                  type="button"
+                  aria-label="Xóa sản phẩm"
+                  @click="cart.removeItem(it.key)"
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
               </div>
 
-              <button class="link" type="button" @click="cart.removeItem(it.key)">
-                Xóa
-              </button>
+              <div class="item-bottom">
+                <div class="qty">
+                  <span class="qty-label">Số lượng</span>
+                  <div class="qty-stepper">
+                    <button
+                      type="button"
+                      class="qty-btn"
+                      aria-label="Giảm"
+                      :disabled="it.quantity <= 1"
+                      @click="bumpQty(it.key, -1)"
+                    >
+                      −
+                    </button>
+                    <input
+                      class="qty-input"
+                      type="number"
+                      min="1"
+                      :value="it.quantity"
+                      @change="onQtyChange(it.key, $event)"
+                    />
+                    <button type="button" class="qty-btn" aria-label="Tăng" @click="bumpQty(it.key, 1)">
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div class="item-price-block">
+                  <p class="item-unit">{{ formatMoney(unitPrice(it)) }} / sản phẩm</p>
+                  <p class="item-line">{{ formatMoney(lineTotal(it)) }}</p>
+                </div>
+              </div>
             </div>
+          </article>
 
-            <div class="item-bottom">
-              <div class="qty">
-                <label class="qty-label">Số lượng</label>
-                <input
-                  class="qty-input"
-                  type="number"
-                  min="1"
-                  :value="it.quantity"
-                  @input="cart.setQuantity(it.key, $event.target.value)"
-                />
-              </div>
+          <button class="btn-clear" type="button" @click="cart.clear()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+            Xóa toàn bộ giỏ hàng
+          </button>
+        </main>
 
-              <p class="item-price">{{ it.price }}</p>
+        <aside class="summary" aria-label="Tóm tắt đơn hàng">
+          <h2 class="summary-title">Tóm tắt</h2>
+
+          <div class="voucher-row">
+            <input
+              v-model="voucherCode"
+              placeholder="Nhập mã giảm giá"
+              class="voucher-input"
+              autocomplete="off"
+            />
+            <button type="button" class="btn-apply" :disabled="voucherLoading" @click="applyVoucher">
+              {{ voucherLoading ? '…' : 'Áp dụng' }}
+            </button>
+          </div>
+          <p v-if="voucherError" class="voucher-err">{{ voucherError }}</p>
+          <p v-else-if="appliedVoucher" class="voucher-ok">Đã giảm {{ formatMoney(voucherAmount) }}</p>
+
+          <div class="summary-rows">
+            <div class="summary-row">
+              <span>Tạm tính</span>
+              <strong>{{ formatMoney(subtotal) }}</strong>
+            </div>
+            <div v-if="voucherAmount > 0" class="summary-row discount">
+              <span>Giảm giá</span>
+              <strong>−{{ formatMoney(voucherAmount) }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>Phí vận chuyển</span>
+              <strong>{{ formatMoney(0) }}</strong>
             </div>
           </div>
-        </article>
 
-        <button class="link clear" type="button" @click="cart.clear()">
-          Xóa hết giỏ hàng
-        </button>
-      </main>
+          <div class="summary-total">
+            <span>Tổng cộng</span>
+            <strong>{{ formatMoney(total) }}</strong>
+          </div>
 
-      <aside class="summary">
-        <h2 class="summary-title">Tóm tắt</h2>
-
-        <div class="voucher-row">
-          <input v-model="voucherCode" placeholder="Mã giảm giá" class="voucher-input" />
-          <button type="button" class="btn-apply" :disabled="voucherLoading" @click="applyVoucher">
-            {{ voucherLoading ? 'Đang kiểm tra...' : 'Áp dụng' }}
+          <button class="btn-checkout" type="button" @click="$router.push('/checkout')">
+            Thanh toán
           </button>
-        </div>
-        <p v-if="voucherError" class="voucher-err">{{ voucherError }}</p>
-        <p v-else-if="appliedVoucher" class="voucher-ok">Đã giảm {{ formatPrice(voucherAmount) }} VNĐ</p>
-
-        <div class="summary-row">
-          <span>Tạm tính</span>
-          <strong>{{ formatPrice(subtotal) }} VNĐ</strong>
-        </div>
-        <div v-if="voucherAmount > 0" class="summary-row discount">
-          <span>Giảm giá</span>
-          <strong>-{{ formatPrice(voucherAmount) }} VNĐ</strong>
-        </div>
-        <div class="summary-row">
-          <span>Phí vận chuyển</span>
-          <strong>0 VNĐ</strong>
-        </div>
-        <div class="summary-row summary-total">
-          <span>Tổng</span>
-          <strong>{{ formatPrice(total) }} VNĐ</strong>
-        </div>
-
-        <button class="btn primary" type="button" @click="$router.push('/checkout')">
-          Thanh toán
-        </button>
-      </aside>
-    </section>
+          <router-link to="/product" class="link-continue">Tiếp tục mua sắm</router-link>
+        </aside>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -101,6 +163,7 @@
 import { ref, computed } from 'vue'
 import { useCart } from '../cartStore'
 import { validateVoucher } from '../api/services/voucherService'
+import { API_BASE_URL } from '../api/config'
 
 const cart = useCart()
 const voucherCode = ref('')
@@ -109,20 +172,69 @@ const voucherError = ref('')
 const appliedVoucher = ref(null)
 const voucherAmount = ref(0)
 
+const PLACEHOLDER_IMG =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f4f4f5"/><stop offset="100%" stop-color="#e4e4e7"/></linearGradient></defs><rect fill="url(#g)" width="400" height="400"/><text x="200" y="210" text-anchor="middle" fill="#a1a1aa" font-family="system-ui,sans-serif" font-size="13">Ảnh sản phẩm</text></svg>'
+  )
+
+function toDisplayUrl(url) {
+  if (!url || typeof url !== 'string') return ''
+  const base = API_BASE_URL.replace(/\/api\/?$/, '') || 'http://localhost:8080'
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  if (url.startsWith('data:')) return url
+  if (url.startsWith('/')) return base + url
+  const filename = url.replace(/^.*[/\\]/, '')
+  if (filename && /\.(jpe?g|png|gif|webp)$/i.test(filename)) {
+    return base + '/uploads/' + filename
+  }
+  return base + '/uploads/' + (url.replace(/^.*[/\\]/, '') || '')
+}
+
+function resolveImage(url) {
+  const s = url && String(url).trim()
+  if (!s) return PLACEHOLDER_IMG
+  return toDisplayUrl(s)
+}
+
+function onImgError(e) {
+  e.target.src = PLACEHOLDER_IMG
+}
+
 function toNumber(priceText) {
-  const digits = String(priceText || '').replace(/[^\d]/g, '')
+  const digits = String(priceText ?? '').replace(/[^\d]/g, '')
   return digits ? Number(digits) : 0
 }
 
-function formatPrice(n) {
-  return Number(n).toLocaleString('vi-VN')
+function formatMoney(n) {
+  return `${Number(n || 0).toLocaleString('vi-VN')} VNĐ`
+}
+
+function unitPrice(it) {
+  return toNumber(it.price)
+}
+
+function lineTotal(it) {
+  return unitPrice(it) * (Number(it.quantity) || 0)
 }
 
 const subtotal = computed(() =>
-  cart.state.items.reduce((sum, it) => sum + toNumber(it.price) * it.quantity, 0)
+  cart.state.items.reduce((sum, it) => sum + lineTotal(it), 0)
 )
 
 const total = computed(() => Math.max(0, subtotal.value - voucherAmount.value))
+
+function bumpQty(key, delta) {
+  const item = cart.state.items.find((x) => x.key === key)
+  if (!item) return
+  const next = Math.max(1, (Number(item.quantity) || 1) + delta)
+  cart.setQuantity(key, next)
+}
+
+function onQtyChange(key, e) {
+  const v = e.target?.value
+  cart.setQuantity(key, v)
+}
 
 async function applyVoucher() {
   const code = voucherCode.value?.trim()
@@ -146,220 +258,473 @@ async function applyVoucher() {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap');
+
 .cart-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 28px 16px 72px;
+  --cp-ink: #0a0a0a;
+  --cp-muted: #6b7280;
+  --cp-line: rgba(0, 0, 0, 0.08);
+  --cp-surface: #fafafa;
+
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: var(--cp-ink);
+  background: var(--cp-surface);
 }
 
-.cart-header {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 22px;
+.cart-promo {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  background: #0a0a0a;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cart-promo-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.cart-hero {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  background: linear-gradient(165deg, #111827 0%, #0a0a0a 48%, #0a0a0a 100%);
+  color: #fff;
+  padding: 36px 24px 40px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cart-hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .cart-breadcrumb {
-  font-size: 14px;
-  color: #6b7280;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.45);
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
-.crumb {
+.cart-crumb {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: rgba(255, 255, 255, 0.45);
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.crumb:hover {
+.cart-crumb:hover {
+  color: #fff;
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-.sep {
-  opacity: 0.7;
-}
-
-.current {
-  color: #111827;
+.cart-current {
+  color: rgba(255, 255, 255, 0.92);
   font-weight: 600;
 }
 
+.cart-eyebrow {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
 .cart-title {
-  font-size: 28px;
+  margin: 0;
+  font-size: clamp(28px, 3.2vw, 40px);
   font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
 }
 
 .cart-subtitle {
+  margin: 10px 0 0;
+  max-width: 480px;
   font-size: 14px;
-  color: #4b5563;
+  font-weight: 500;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.cart-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px 72px;
 }
 
 .empty {
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  padding: 28px;
+  border: 1px solid var(--cp-line);
+  border-radius: 20px;
+  padding: 48px 28px;
   background: #fff;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.06);
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #f4f4f5;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.empty-icon svg {
+  width: 28px;
+  height: 28px;
 }
 
 .empty-title {
-  font-size: 16px;
-  font-weight: 700;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.empty-text {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--cp-muted);
+  max-width: 360px;
+  line-height: 1.5;
+}
+
+.empty-btn {
+  margin-top: 8px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 999px;
+  background: #0a0a0a;
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.empty-btn:hover {
+  background: #111827;
+}
+
+.empty-btn:active {
+  transform: scale(0.98);
 }
 
 .cart-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 28px;
   align-items: start;
 }
 
 .cart-items {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .item {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--cp-line);
   border-radius: 18px;
   background: #fff;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 140px minmax(0, 1fr);
+  grid-template-columns: 160px minmax(0, 1fr);
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.25s ease;
+}
+
+.item:hover {
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+}
+
+.item-media {
+  display: block;
+  background: linear-gradient(145deg, #f3f4f6, #fafafa);
+  min-height: 160px;
 }
 
 .item-image {
   width: 100%;
-  height: 140px;
+  height: 100%;
+  min-height: 160px;
   object-fit: cover;
-  background: #f3f4f6;
+  display: block;
 }
 
 .item-body {
-  padding: 14px;
+  padding: 18px 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  min-width: 0;
 }
 
 .item-top {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.item-text-link {
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+
+.item-text-link:hover .item-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .item-brand {
-  font-size: 12px;
-  color: #6b7280;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin: 0 0 4px;
 }
 
 .item-name {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0 0 6px;
 }
 
 .item-meta {
   font-size: 13px;
+  color: var(--cp-muted);
+  margin: 0;
+}
+
+.item-remove {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--cp-line);
+  border-radius: 12px;
+  background: #fafafa;
   color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.item-remove:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
 }
 
 .item-bottom {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 14px;
+  gap: 16px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .qty {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .qty-label {
-  font-size: 12px;
-  color: #6b7280;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.qty-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--cp-line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.qty-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #fafafa;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--cp-ink);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.qty-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.qty-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .qty-input {
-  width: 110px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  font-size: 14px;
-}
-
-.item-price {
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.link {
-  background: none;
+  width: 48px;
+  height: 40px;
   border: none;
-  color: #111827;
-  cursor: pointer;
+  border-left: 1px solid var(--cp-line);
+  border-right: 1px solid var(--cp-line);
+  text-align: center;
+  font-size: 14px;
   font-weight: 700;
-  padding: 0;
+  font-family: inherit;
+  color: var(--cp-ink);
+  -moz-appearance: textfield;
 }
 
-.link:hover {
-  text-decoration: underline;
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-.clear {
+.item-price-block {
+  text-align: right;
+}
+
+.item-unit {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: var(--cp-muted);
+}
+
+.item-line {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--cp-ink);
+}
+
+.btn-clear {
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 10px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  background: #fff;
   color: #b91c1c;
-  margin-top: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-clear:hover {
+  background: #fef2f2;
+  border-color: #f87171;
 }
 
 .summary {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--cp-line);
   border-radius: 18px;
-  padding: 16px;
+  padding: 22px 20px 24px;
   background: #fff;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  position: sticky;
+  top: 96px;
 }
 
 .summary-title {
-  font-size: 16px;
+  font-size: 11px;
   font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin: 0 0 2px;
 }
 
 .voucher-row {
   display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
 }
 
 .voucher-input {
   flex: 1;
-  padding: 8px 12px;
+  min-width: 0;
+  padding: 12px 14px;
   border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 14px;
+  font-family: inherit;
+  background: #fafafa;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 
 .voucher-input:focus {
   outline: none;
-  border-color: #111827;
+  border-color: var(--cp-ink);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
 }
 
 .btn-apply {
-  padding: 8px 14px;
-  border: 1px solid #111827;
+  flex-shrink: 0;
+  padding: 12px 18px;
+  border: 1px solid var(--cp-ink);
   background: #fff;
-  border-radius: 10px;
-  font-weight: 600;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 .btn-apply:hover:not(:disabled) {
@@ -374,60 +739,135 @@ async function applyVoucher() {
 .voucher-err {
   color: #b91c1c;
   font-size: 12px;
-  margin: -4px 0 8px;
+  margin: -6px 0 0;
 }
 
 .voucher-ok {
   color: #059669;
   font-size: 12px;
-  margin: -4px 0 8px;
+  font-weight: 600;
+  margin: -6px 0 0;
 }
 
-.summary-row.discount {
-  color: #059669;
+.summary-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
 }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   font-size: 14px;
-  color: #374151;
+  color: #4b5563;
+}
+
+.summary-row strong {
+  font-weight: 700;
+  color: var(--cp-ink);
+}
+
+.summary-row.discount strong {
+  color: #059669;
 }
 
 .summary-total {
-  border-top: 1px solid #e5e7eb;
-  padding-top: 12px;
-  color: #111827;
-}
-
-.btn {
-  border: 1px solid #111827;
-  background: #fff;
-  color: #111827;
-  border-radius: 14px;
-  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 16px;
+  margin-top: 4px;
+  border-top: 1px solid var(--cp-line);
+  font-size: 15px;
   font-weight: 800;
-  cursor: pointer;
 }
 
-.btn.primary {
-  background: #111827;
+.summary-total strong {
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.btn-checkout {
+  margin-top: 4px;
+  width: 100%;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 999px;
+  background: #0a0a0a;
   color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.btn-checkout:hover {
+  background: #111827;
+}
+
+.btn-checkout:active {
+  transform: scale(0.99);
+}
+
+.link-continue {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cp-muted);
+  text-decoration: none;
+  padding: 8px;
+  transition: color 0.2s;
+}
+
+.link-continue:hover {
+  color: var(--cp-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 @media (max-width: 1024px) {
   .cart-layout {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .summary {
+    position: static;
+  }
 }
 
 @media (max-width: 640px) {
   .item {
-    grid-template-columns: 110px minmax(0, 1fr);
+    grid-template-columns: 120px minmax(0, 1fr);
   }
+
+  .item-media {
+    min-height: 120px;
+  }
+
   .item-image {
-    height: 110px;
+    min-height: 120px;
+  }
+
+  .item-bottom {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .item-price-block {
+    text-align: left;
+  }
+
+  .cart-shell {
+    padding: 24px 16px 56px;
+  }
+
+  .cart-hero {
+    padding: 28px 16px 32px;
   }
 }
 </style>
-

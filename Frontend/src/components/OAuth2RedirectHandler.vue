@@ -21,6 +21,9 @@ onMounted(() => {
   const token = route.query.token
   const email = route.query.email
   const role = route.query.role
+  const userIdRaw = route.query.userId
+  let userId = userIdRaw != null && userIdRaw !== '' ? Number(userIdRaw) : undefined
+  if (userId !== undefined && !Number.isFinite(userId)) userId = undefined
   
   // 2. GIẢI MÃ TIẾNG VIỆT (Hứng từ encodedName của Backend)
   let fullName = route.query.fullName || ""
@@ -34,6 +37,7 @@ onMounted(() => {
   if (token) {
     // 3. Tạo object user và lưu vào Store (LocalStorage/Pinia)
     const userData = {
+      ...(userId != null ? { id: userId } : {}),
       email: email,
       fullName: fullName,
       role: role || 'customer'

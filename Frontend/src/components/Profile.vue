@@ -1,12 +1,14 @@
 <template>
   <div class="profile-page">
+    <div class="profile-inner">
     <header class="profile-header">
+      <p class="profile-eyebrow">KESN Store</p>
       <h1>Tài khoản của tôi</h1>
-      <p>Quản lý thông tin cá nhân và đơn hàng</p>
+      <p class="profile-lead">Quản lý thông tin cá nhân và đơn hàng</p>
     </header>
 
     <div class="profile-layout">
-      <nav class="profile-nav">
+      <nav class="profile-nav" aria-label="Menu tài khoản">
         <button
           type="button"
           class="nav-item"
@@ -45,7 +47,7 @@
       </nav>
 
       <main class="profile-main">
-        <section v-if="tab === 'info'" class="block">
+        <section v-if="tab === 'info'" class="block block--raised">
           <h2>Thông tin cá nhân</h2>
           <div v-if="user" class="profile-summary">
             <p class="summary-row"><strong>Họ và tên:</strong> {{ user.fullName || user.full_name || '—' }}</p>
@@ -70,7 +72,7 @@
           </form>
         </section>
 
-        <section v-else-if="tab === 'password'" class="block">
+        <section v-else-if="tab === 'password'" class="block block--raised">
           <h2>Đổi mật khẩu</h2>
           <form class="profile-form" @submit.prevent="changePassword">
             <div class="form-group">
@@ -91,10 +93,11 @@
           </form>
         </section>
 
-        <section v-else class="block">
+        <section v-else class="block block--raised block--flush">
           <OrderHistory />
         </section>
       </main>
+    </div>
     </div>
   </div>
 </template>
@@ -161,104 +164,160 @@ function changePassword() {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 .profile-page {
-  max-width: 1000px;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  width: 100%;
+  background: linear-gradient(180deg, #f8f9fb 0%, #eef1f4 55%, #e8ecf0 100%);
+  min-height: calc(100vh - 100px);
+  color: #0f172a;
+}
+
+.profile-inner {
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 24px 16px 72px;
+  padding: 28px 18px 80px;
 }
 
 .profile-header {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+}
+
+.profile-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin: 0 0 10px;
 }
 
 .profile-header h1 {
-  font-size: 28px;
+  font-size: clamp(26px, 4vw, 32px);
   font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 8px;
+  line-height: 1.15;
 }
 
-.profile-header p {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 4px 0 0;
+.profile-lead {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 420px;
 }
 
 .profile-layout {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
 }
 
 .profile-nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 40px rgba(15, 23, 42, 0.06);
+  position: sticky;
+  top: 88px;
 }
 
 .nav-item {
-  padding: 12px 16px;
+  padding: 12px 14px;
   text-align: left;
-  border: 1px solid #e5e7eb;
-  background: #fff;
+  border: 1px solid transparent;
+  background: transparent;
   border-radius: 12px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
+  color: #475569;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .nav-item:hover {
-  background: #f9fafb;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 .nav-item.active {
-  background: #111827;
+  background: #0f172a;
   color: #fff;
-  border-color: #111827;
+  border-color: #0f172a;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
 }
 
 .nav-item--admin {
-  margin-top: 8px;
-  background: #111827;
+  margin-top: 10px;
+  background: #0f172a;
   color: #fff;
-  border-color: #111827;
+  border-color: #0f172a;
 }
 
 .nav-item--admin:hover {
   background: #020617;
+  color: #fff;
 }
 
 .nav-item--logout {
-  margin-top: 12px;
+  margin-top: 8px;
   color: #b91c1c;
 }
 
 .nav-item--logout:hover {
   background: #fef2f2;
+  color: #991b1b;
+}
+
+.nav-item:focus-visible {
+  outline: 2px solid #0f172a;
+  outline-offset: 2px;
 }
 
 .profile-main .block {
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 20px;
+  padding: 28px 28px 32px;
   background: #fff;
 }
 
+.block--raised {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 16px 48px rgba(15, 23, 42, 0.07);
+}
+
+.block--flush {
+  padding: 24px 26px 28px;
+}
+
 .block h2 {
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 700;
-  margin: 0 0 20px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin: 0 0 22px;
 }
 
 .profile-summary {
-  background: #f9fafb;
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  padding: 20px 22px;
+  margin-bottom: 28px;
+  border: 1px solid #e2e8f0;
 }
 
 .summary-row {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-size: 15px;
-  color: #374151;
+  color: #334155;
+  line-height: 1.5;
 }
 
 .summary-row:last-child {
@@ -266,42 +325,52 @@ function changePassword() {
 }
 
 .summary-row strong {
-  color: #111827;
+  color: #0f172a;
   margin-right: 8px;
+  font-weight: 700;
 }
 
 .profile-form {
-  max-width: 400px;
+  max-width: 420px;
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .form-group label {
   display: block;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  color: #334155;
 }
 
 .form-group input {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
 }
 
 .form-group input:disabled {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: #f8fafc;
+  color: #64748b;
 }
 
 .hint {
   font-size: 12px;
-  color: #6b7280;
-  margin-top: 4px;
+  color: #94a3b8;
+  margin-top: 6px;
+  display: block;
 }
 
 .error-msg {
@@ -311,24 +380,61 @@ function changePassword() {
 }
 
 .success-msg {
-  color: #059669;
+  color: #047857;
   font-size: 14px;
   margin-bottom: 12px;
 }
 
 .btn-save {
-  padding: 10px 20px;
-  background: #111827;
+  padding: 12px 22px;
+  background: #0f172a;
   color: #fff;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
+  transition: background 0.15s, transform 0.15s;
+}
+
+.btn-save:hover {
+  background: #020617;
+}
+
+.btn-save:active {
+  transform: scale(0.98);
+}
+
+.btn-save:focus-visible {
+  outline: 2px solid #0f172a;
+  outline-offset: 2px;
 }
 
 @media (max-width: 768px) {
   .profile-layout {
     grid-template-columns: 1fr;
+  }
+
+  .profile-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 10px;
+  }
+
+  .nav-item {
+    flex: 1 1 auto;
+    min-width: calc(50% - 6px);
+    text-align: center;
+    font-size: 13px;
+    padding: 10px 8px;
+  }
+
+  .nav-item--admin,
+  .nav-item--logout {
+    flex: 1 1 100%;
+    margin-top: 4px;
   }
 }
 </style>

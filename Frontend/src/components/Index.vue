@@ -82,43 +82,77 @@
     <main class="home-main">
       <!-- Hàng mới & nổi bật — từ API -->
       <section class="home-section home-section--band">
-        <header class="section-head">
+        <header class="section-head section-head--featured">
           <div class="section-head-text">
             <p class="section-eyebrow">Mới nhất</p>
             <h2 class="section-title">Hàng mới &amp; nổi bật</h2>
           </div>
-          <button type="button" class="section-link-all" @click="$router.push('/product')">
-            Xem tất cả
-            <span class="section-link-arrow" aria-hidden="true">→</span>
-          </button>
+          <div class="section-head-actions">
+            <div
+              v-if="!featuredLoading && !featuredError && featuredList.length > 4"
+              class="home-rail-nav"
+              role="group"
+              aria-label="Chuyển nhóm sản phẩm (4 sản phẩm mỗi lần)"
+            >
+              <button
+                type="button"
+                class="rail-btn"
+                aria-label="Nhóm sản phẩm trước"
+                :disabled="featuredPageStart <= 0"
+                @click="featuredPrev"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                class="rail-btn"
+                aria-label="Nhóm sản phẩm sau"
+                :disabled="featuredPageStart >= featuredPageMaxStart"
+                @click="featuredNext"
+              >
+                ›
+              </button>
+            </div>
+            <button type="button" class="section-link-all" @click="$router.push('/product')">
+              Xem tất cả
+              <span class="section-link-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
         </header>
 
         <p v-if="featuredLoading" class="home-loading">Đang tải sản phẩm…</p>
         <p v-else-if="featuredError" class="home-error">{{ featuredError }}</p>
-        <div v-else class="home-product-grid">
-          <article
-            v-for="item in featuredProducts"
-            :key="item.id"
-            class="home-product-card"
-            tabindex="0"
-            role="link"
-            @click="goProduct(item.id)"
-            @keydown.enter="goProduct(item.id)"
-          >
-            <div class="home-product-media">
-              <img
-                :src="item.image || PLACEHOLDER_IMG"
-                :alt="item.name"
-                loading="lazy"
-                @error="(e) => (e.target.src = PLACEHOLDER_IMG)"
-              />
-            </div>
-            <div class="home-product-body">
-              <p class="home-product-brand">{{ item.brand || '—' }}</p>
-              <h3 class="home-product-name">{{ item.name }}</h3>
-              <p class="home-product-price">{{ formatPrice(item.price) }}</p>
-            </div>
-          </article>
+        <p v-else-if="featuredList.length === 0" class="home-loading">Chưa có sản phẩm nổi bật.</p>
+        <div v-else class="home-featured-page" role="region" aria-label="Bốn sản phẩm mới nhất mỗi trang">
+          <div class="home-featured-viewport">
+            <Transition :name="featuredPageTransition" mode="out-in">
+              <div :key="featuredPageStart" class="home-featured-grid">
+                <article
+                  v-for="item in featuredPageItems"
+                  :key="item.id"
+                  class="home-product-card"
+                  tabindex="0"
+                  role="link"
+                  @click="goProduct(item.id)"
+                  @keydown.enter="goProduct(item.id)"
+                >
+                  <div class="home-product-media">
+                    <img
+                      :src="item.image || PLACEHOLDER_IMG"
+                      :alt="item.name"
+                      loading="lazy"
+                      @error="(e) => (e.target.src = PLACEHOLDER_IMG)"
+                    />
+                  </div>
+                  <div class="home-product-body">
+                    <p class="home-product-brand">{{ item.brand || '—' }}</p>
+                    <h3 class="home-product-name">{{ item.name }}</h3>
+                    <p class="home-product-price">{{ formatPrice(item.price) }}</p>
+                  </div>
+                </article>
+              </div>
+            </Transition>
+          </div>
         </div>
       </section>
 
@@ -188,12 +222,12 @@
           </article>
           <article
             class="home-tile"
-            @click="$router.push({ path: '/product', query: { category: 'Baseball' } })"
+            @click="$router.push({ path: '/product', query: { category: 'Bóng bầu dục' } })"
           >
             <div class="home-tile-media">
-              <img :src="t3" alt="Baseball" />
+              <img :src="t3" alt="Bóng bầu dục" />
             </div>
-            <h3 class="home-tile-title">Baseball</h3>
+            <h3 class="home-tile-title">Bóng bầu dục</h3>
           </article>
           <article
             class="home-tile"
@@ -324,7 +358,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import banner from './image/banner.png'
 import p1 from './image/p1.jpg'
@@ -341,6 +375,17 @@ import { API_BASE_URL } from '../api/config'
 import { getProductsFromApi } from '../api/services/productService'
 
 const router = useRouter()
+
+const FEATURED_PER_PAGE = 4
+const FEATURED_MAX_ITEMS = 40
+
+const featuredPageStart = ref(0)
+/** 1 = sang nhóm sau, -1 = nhóm trước — dùng cho hướng animation */
+const featuredNavDir = ref(1)
+
+const featuredPageTransition = computed(() =>
+  featuredNavDir.value >= 0 ? 'home-featured-next' : 'home-featured-prev'
+)
 
 const PLACEHOLDER_IMG =
   'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22 viewBox=%220 0 300 200%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22300%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%239ca3af%22 font-size=%2214%22 text-anchor=%22middle%22 dy=%22.3em%22%3EKh%C3%B4ng c%C3%B3 %E1%BA%A3nh%3C/text%3E%3C/svg%3E'
@@ -386,8 +431,8 @@ const featuredLoading = ref(true)
 const featuredError = ref('')
 const featuredRaw = ref([])
 
-const featuredProducts = computed(() =>
-  featuredRaw.value.slice(0, 8).map((p) => ({
+const featuredList = computed(() =>
+  featuredRaw.value.slice(0, FEATURED_MAX_ITEMS).map((p) => ({
     id: p.id,
     image: getPrimaryImage(p.imageUrl),
     brand: p.brand,
@@ -396,8 +441,33 @@ const featuredProducts = computed(() =>
   }))
 )
 
-/** Ưu tiên 1 SP / danh mục: Giày cao gót, Dép, Dép lười — thiếu thì lấy thêm từ danh sách */
-const COLLECTION_CATS = ['Giày cao gót', 'Dép', 'Dép lười']
+const featuredPageMaxStart = computed(() =>
+  Math.max(0, featuredList.value.length - FEATURED_PER_PAGE)
+)
+
+const featuredPageItems = computed(() => {
+  const start = featuredPageStart.value
+  return featuredList.value.slice(start, start + FEATURED_PER_PAGE)
+})
+
+function featuredPrev() {
+  featuredNavDir.value = -1
+  featuredPageStart.value = Math.max(0, featuredPageStart.value - FEATURED_PER_PAGE)
+}
+
+function featuredNext() {
+  featuredNavDir.value = 1
+  const maxS = featuredPageMaxStart.value
+  featuredPageStart.value = Math.min(maxS, featuredPageStart.value + FEATURED_PER_PAGE)
+}
+
+watch(featuredList, () => {
+  const maxS = Math.max(0, featuredList.value.length - FEATURED_PER_PAGE)
+  if (featuredPageStart.value > maxS) featuredPageStart.value = maxS
+})
+
+/** Ưu tiên 1 SP / danh mục — thiếu thì lấy thêm từ danh sách */
+const COLLECTION_CATS = ['Gym', 'Đá banh', 'Basketball']
 
 const collectionProducts = computed(() => {
   const list = featuredRaw.value || []
@@ -858,6 +928,72 @@ onMounted(async () => {
   transform: translateX(4px);
 }
 
+.section-head--featured {
+  align-items: flex-start;
+}
+
+.section-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.home-rail-nav {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.rail-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 500;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    background 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rail-btn:hover:not(:disabled) {
+  background: var(--surface-muted);
+  border-color: var(--ink);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
+.rail-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.rail-btn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.rail-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.rail-btn:disabled:hover {
+  background: #fff;
+  border-color: var(--border);
+}
+
 .home-section {
   display: flex;
   flex-direction: column;
@@ -883,11 +1019,84 @@ onMounted(async () => {
   color: #b91c1c;
 }
 
-/* Product grid from API */
-.home-product-grid {
+/* Hàng mới: 4 sản phẩm / trang, nút chuyển nhóm */
+.home-featured-page {
+  width: 100%;
+}
+
+.home-featured-viewport {
+  position: relative;
+  width: 100%;
+}
+
+@media (min-width: 521px) {
+  .home-featured-viewport {
+    min-height: 300px;
+  }
+}
+
+.home-featured-next-enter-active,
+.home-featured-next-leave-active,
+.home-featured-prev-enter-active,
+.home-featured-prev-leave-active {
+  transition:
+    opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home-featured-next-enter-from {
+  opacity: 0;
+  transform: translateX(16px);
+}
+
+.home-featured-next-leave-to {
+  opacity: 0;
+  transform: translateX(-12px);
+}
+
+.home-featured-prev-enter-from {
+  opacity: 0;
+  transform: translateX(-16px);
+}
+
+.home-featured-prev-leave-to {
+  opacity: 0;
+  transform: translateX(12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-featured-next-enter-active,
+  .home-featured-next-leave-active,
+  .home-featured-prev-enter-active,
+  .home-featured-prev-leave-active {
+    transition-duration: 0.01ms;
+    transition-property: opacity;
+  }
+
+  .home-featured-next-enter-from,
+  .home-featured-next-leave-to,
+  .home-featured-prev-enter-from,
+  .home-featured-prev-leave-to {
+    transform: none;
+  }
+}
+
+.home-featured-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 18px;
+}
+
+@media (max-width: 900px) {
+  .home-featured-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .home-featured-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .home-product-card {
@@ -896,7 +1105,9 @@ onMounted(async () => {
   border: 1px solid var(--border);
   cursor: pointer;
   overflow: hidden;
-  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .home-product-card::after {
@@ -969,6 +1180,9 @@ onMounted(async () => {
   font-weight: 800;
   margin: 0;
   color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+  line-height: 1.3;
 }
 
 /* Category / brand tiles */
@@ -1271,10 +1485,6 @@ onMounted(async () => {
     grid-template-columns: 1fr 1fr;
   }
 
-  .home-product-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .home-grid--4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1334,10 +1544,6 @@ onMounted(async () => {
 
   .home-spotlight-media {
     min-height: 180px;
-  }
-
-  .home-product-grid {
-    grid-template-columns: 1fr;
   }
 
   .home-grid--3,

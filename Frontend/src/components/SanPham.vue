@@ -43,10 +43,6 @@
             <option value="Đá banh">Đá banh</option>
             <option value="Bóng bầu dục">Bóng bầu dục</option>
             <option value="Gym">Gym</option>
-            <option value="Baseball">Baseball</option>
-            <option value="Giày cao gót">Giày cao gót</option>
-            <option value="Dép">Dép</option>
-            <option value="Dép lười">Dép lười</option>
             <option value="Các loại khác">Các loại khác</option>
             </select>
           </div>
@@ -67,6 +63,7 @@
             <option value="">Tất cả</option>
             <option value="Nike">Nike</option>
             <option value="Adidas">Adidas</option>
+            <option value="Balenciaga">Balenciaga</option>
             <option value="Stussy">Stussy</option>
             <option value="Cross">Cross</option>
             </select>

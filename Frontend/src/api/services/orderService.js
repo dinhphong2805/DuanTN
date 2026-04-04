@@ -13,6 +13,14 @@ export async function getOrdersByUser(userId) {
   return data
 }
 
+export async function getOrderDetail(orderId, userId) {
+  const uid = Number(userId)
+  const { data } = await client.get(`/orders/detail/${orderId}`, {
+    params: { userId: uid },
+  })
+  return data
+}
+
 export async function deleteOrder(id) {
   const { data } = await client.delete(`/orders/${id}`)
   return data

@@ -1,6 +1,7 @@
 package com.kesn.controller;
 
 import com.kesn.dto.CreateOrderRequest;
+import com.kesn.dto.OrderDetailResponse;
 import com.kesn.entity.Order;
 import com.kesn.entity.OrderItem;
 import com.kesn.repository.OrderRepository;
@@ -76,7 +77,19 @@ public class OrderController {
     public ResponseEntity<List<Order>> getByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(orderRepository.findByUserIdOrderByCreatedAtDesc(userId));
     }
-    
+
+    /** Chi tiết đơn (DTO) — chỉ trả về nếu đơn thuộc đúng user (khớp user_id). */
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<OrderDetailResponse> getDetailForUser(
+            @PathVariable Long id,
+            @RequestParam Long userId) {
+        return orderRepository.findById(id)
+                .filter(o -> o.getUserId() != null && o.getUserId().equals(userId))
+                .map(OrderDetailResponse::fromEntity)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
  // API để hủy đơn hàng (xóa khỏi DB) khi khách không muốn thanh toán QR nữa
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteOrder(@PathVariable Long id) {

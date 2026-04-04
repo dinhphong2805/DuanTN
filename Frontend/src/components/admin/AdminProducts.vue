@@ -260,10 +260,19 @@ function serializeImageUrls(list) {
   return (list || []).filter(Boolean).slice(0, 10).join('|')
 }
 
+function dedupeSorted(list) {
+  const arr = Array.isArray(list) ? list : []
+  return [...new Set(arr.map((x) => String(x ?? '').trim()).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, 'vi')
+  )
+}
+
 async function loadOptions() {
   try {
-    brandList.value = await getBrandNames()
-    categoryList.value = await getCategoryNames()
+    const brands = await getBrandNames()
+    const cats = await getCategoryNames()
+    brandList.value = dedupeSorted(brands)
+    categoryList.value = dedupeSorted(cats)
   } catch (error) {
     console.error("Lỗi tải danh mục/thương hiệu:", error)
   }

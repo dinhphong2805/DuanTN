@@ -10,6 +10,7 @@ import ChiTietSanPham from './components/ChiTietSanPham.vue'
 import GioHang from './components/GioHang.vue'
 import Checkout from './components/Checkout.vue'
 import Profile from './components/Profile.vue'
+import OrderDetail from './components/OrderDetail.vue'
 import FAQ from './components/FAQ.vue'
 import Contact from './components/Contact.vue'
 import AdminLayout from './components/admin/AdminLayout.vue'
@@ -30,6 +31,12 @@ const routes = [
   { path: '/cart', name: 'Cart', component: GioHang },
   { path: '/checkout', name: 'Checkout', component: Checkout },
   { path: '/profile', name: 'Profile', component: Profile, meta: { requiresAuth: true } },
+  {
+    path: '/profile/orders/:id',
+    name: 'OrderDetail',
+    component: OrderDetail,
+    meta: { requiresAuth: true },
+  },
   { path: '/faq', name: 'FAQ', component: FAQ },
   { path: '/contact', name: 'Contact', component: Contact },
 
