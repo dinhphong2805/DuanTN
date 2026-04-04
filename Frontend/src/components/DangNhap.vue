@@ -1,77 +1,60 @@
 <template>
-  <div class="login-wrapper">
+  <div class="login-page">
+    <div class="bg-text-wrapper">
+      <div class="bg-text">KESN STORE KESN STORE</div>
+      <div class="bg-text reverse">KESN STORE KESN STORE</div>
+    </div>
+
     <div class="login-card">
-      <h1 class="login-title">Đăng nhập</h1>
+      <div class="glass-box">
+        <h1 class="brand-name">KESN STORE</h1>
+        <p class="brand-tagline">SNEAKERS COLLECTION</p>
 
-      <form class="login-form" @submit.prevent="handleLogin">
-        <div class="form-group">
-          <label for="email">Nhập gmail *</label>
-          <input
-            id="email"
-            type="email"
-            v-model="email"
-            placeholder="Nhập gmail *"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="password">Nhập mật khẩu: *</label>
-          <div class="password-wrapper">
-            <input
-              id="password"
-              :type="showPassword ? 'text' : 'password'"
-              v-model="password"
-              placeholder="Nhập mật khẩu *"
-              required
-            />
-            <button
-              type="button"
-              class="toggle-password"
-              @click="togglePassword"
-            >
-              <span class="eye-icon">
-                <span
-                  v-if="!showPassword"
-                  class="eye-pupil"
-                ></span>
-              </span>
-            </button>
+        <form @submit.prevent="handleLogin" class="auth-form">
+          <div class="input-group">
+            <label>Email</label>
+            <div class="input-field">
+              <span class="icon">✉</span>
+              <input type="email" v-model="email" placeholder="Nhập email của bạn" required />
+            </div>
           </div>
-        </div>
 
-        <p v-if="error" class="error-msg">{{ error }}</p>
+          <div class="input-group">
+            <label>Mật khẩu</label>
+            <div class="input-field">
+              <span class="icon">🔒</span>
+              <input :type="showPassword ? 'text' : 'password'" v-model="password" placeholder="••••••••" required />
+              <button type="button" @click="showPassword = !showPassword" class="toggle-password">
+                {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+              </button>
+            </div>
+          </div>
 
-        <div class="form-options">
-          <label class="remember-label">
-            <input type="checkbox" v-model="remember" />
-            <span>Nhớ mật khẩu</span>
-          </label>
+          <div class="form-options">
+            <label class="checkbox-container">
+              <input type="checkbox" v-model="remember" />
+              <span>Ghi nhớ tôi</span>
+            </label>
+            <a href="#" @click.prevent="$router.push('/forgot-password')" class="link">Quên mật khẩu?</a>
+          </div>
 
-          <a
-            href="#"
-            class="link-inline"
-            @click.prevent="$router.push('/forgot-password')"
-          >
-            Quên mật khẩu
-          </a>
-        </div>
+          <button type="submit" class="btn-submit" :disabled="loading">
+            <span v-if="!loading">ĐĂNG NHẬP</span>
+            <div v-else class="loader"></div>
+          </button>
 
-        <button type="submit" class="btn-login" :disabled="loading">
-          {{ loading ? 'Đang xử lý...' : 'Đăng nhập' }}
-        </button>
+          <div class="hr-text"><span>HOẶC</span></div>
 
-        <p class="register">
-          Chưa có tài khoản?
-          <a
-            href="#"
-            class="link-inline"
-            @click.prevent="$router.push('/register')"
-          >
-            Đăng ký
-          </a>
+          <button type="button" class="btn-google" @click="handleGoogleLogin">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" />
+            <span>Đăng nhập với Google</span>
+          </button>
+        </form>
+
+        <p class="register-hint">
+          Thành viên mới? <a href="#" @click.prevent="$router.push('/register')">Đăng ký ngay</a>
         </p>
-      </form>
+      </div>
     </div>
   </div>
 </template>
@@ -89,221 +72,189 @@ export default {
       remember: false,
       showPassword: false,
       loading: false,
-      error: null,
     };
   },
   methods: {
-    togglePassword() {
-      this.showPassword = !this.showPassword;
-    },
     async handleLogin() {
-      this.error = null
-      this.loading = true
+      this.loading = true;
       try {
-        const { user, token } = await login(this.email, this.password)
-        useAuthStore().login(user, token)
-        const redirect = this.$route.query.redirect || '/'
-        this.$router.push(redirect)
+        const { user, token } = await login(this.email, this.password);
+        useAuthStore().login(user, token);
+        this.$router.push('/');
       } catch (e) {
-        this.error = e.response?.data?.message || e.message || 'Đăng nhập thất bại'
+        alert(e.response?.data?.message || 'Email hoặc mật khẩu không đúng!');
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
-  },
+    handleGoogleLogin() {
+      window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    }
+  }
 };
 </script>
 
 <style scoped>
-.login-wrapper {
+/* IMPORT FONT Ở ĐÂY ĐỂ TRÁNH LỖI VITE */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+
+.login-page {
+  position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 16px;
-  box-sizing: border-box;
-  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  background: #f4f4f4;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif !important;
 }
 
-.login-card {
+/* CHỮ NỀN CHẠY */
+.bg-text-wrapper {
+  position: absolute;
   width: 100%;
-  max-width: 520px;
-  background-color: #ffffff;
-  border-radius: 16px;
-  padding: 40px 36px;
-  box-sizing: border-box;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.14);
+  opacity: 0.07; 
+  user-select: none;
+  z-index: 1;
 }
+.bg-text {
+  font-size: 15rem;
+  font-weight: 900;
+  white-space: nowrap;
+  animation: scrollLeft 35s linear infinite;
+  color: #000;
+  letter-spacing: -5px;
+}
+.bg-text.reverse {
+  animation: scrollRight 35s linear infinite;
+}
+@keyframes scrollLeft { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes scrollRight { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 
-.login-title {
-  margin: 0 0 40px;
+/* CARD ĐĂNG NHẬP */
+.login-card {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+}
+.glass-box {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(0,0,0,0.05);
+  border-radius: 24px;
+  padding: 50px 40px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.06);
   text-align: center;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
 }
 
-.login-form {
-  max-width: 520px;
+.brand-name { 
+  font-size: 2.8rem; 
+  font-weight: 900; 
+  margin-bottom: 5px; 
+  color: #000; 
+  letter-spacing: -2px;
+}
+.brand-tagline { 
+  font-size: 0.7rem; 
+  letter-spacing: 5px; 
+  color: #bbb; 
+  margin-bottom: 40px; 
+  text-transform: uppercase;
+}
+
+/* INPUTS */
+.input-group { text-align: left; margin-bottom: 22px; }
+.input-group label { 
+  display: block; 
+  font-size: 0.75rem; 
+  font-weight: 700; 
+  margin-bottom: 8px; 
+  color: #666; 
+  text-transform: uppercase;
+}
+
+.input-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-field .icon {
+  position: absolute;
+  left: 15px;
+  color: #ccc;
+  font-size: 1rem;
+}
+.input-field input {
+  width: 100%;
+  padding: 14px 15px 14px 45px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  background: #fcfcfc;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  transition: 0.3s;
+}
+.input-field input:focus { border-color: #000; background: #fff; }
+
+.toggle-password { position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #bbb;}
+
+/* OPTIONS */
+.form-options { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 30px; }
+.checkbox-container { display: flex; align-items: center; gap: 8px; cursor: pointer; color: #888;}
+.link { color: #000; text-decoration: none; font-weight: 700; }
+
+/* NÚT SUBMIT - ĐÃ ÉP FONT INTER */
+.btn-submit {
+  width: 100%;
+  padding: 16px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.btn-submit:hover { background: #333; transform: translateY(-2px); }
+
+.hr-text { margin: 25px 0; display: flex; align-items: center; color: #eee; font-size: 0.7rem; font-weight: 800; }
+.hr-text::before, .hr-text::after { content: ""; flex: 1; height: 1px; background: #eee; }
+.hr-text span { padding: 0 15px; color: #bbb; }
+
+/* GOOGLE */
+.btn-google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+}
+.btn-google img { width: 20px; height: 20px; } 
+
+.register-hint { margin-top: 35px; font-size: 0.9rem; color: #aaa; }
+.register-hint a { color: #000; text-decoration: none; font-weight: 700; }
+
+.loader {
+  width: 20px; height: 20px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
   margin: 0 auto;
 }
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 24px;
-  font-size: 15px;
-}
-
-.form-group label {
-  color: #555555;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background-color: #f9fafb;
-  font-size: 15px;
-  box-sizing: border-box;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
-}
-
-.password-wrapper {
-  display: flex;
-  align-items: center;
-  background-color: #f9fafb;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  padding-right: 10px;
-}
-
-.password-wrapper input {
-  border-radius: 12px;
-  border: none;
-  background-color: transparent;
-  padding-right: 8px;
-}
-
-.password-wrapper input:focus {
-  outline: none;
-}
-
-.toggle-password {
-  border: none;
-  background: none;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.eye-icon {
-  position: relative;
-  width: 28px;
-  height: 18px;
-  border-radius: 999px;
-  border: 2px solid #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.eye-pupil {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #000;
-}
-
-.error-msg {
-  color: #b91c1c;
-  font-size: 14px;
-  margin: 0 0 12px;
-}
-
-.form-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-  margin-bottom: 28px;
-}
-
-.remember-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.form-options input[type='checkbox'] {
-  width: 14px;
-  height: 14px;
-}
-
-.link-inline {
-  color: #000000;
-  text-decoration: none;
-}
-
-.link-inline:hover {
-  text-decoration: underline;
-}
-
-.btn-login {
-  width: 100%;
-  padding: 14px 18px;
-  margin-top: 8px;
-  background-color: #111827;
-  color: #ffffff;
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 700;
-  transition: background-color 0.15s ease, box-shadow 0.15s ease,
-    transform 0.08s ease;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.25);
-}
-
-.btn-login:hover {
-  background-color: #020617;
-  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.32);
-  transform: translateY(-1px);
-}
-
-.register {
-  text-align: center;
-  margin-top: 16px;
-  font-size: 14px;
-}
-
-.register .link-inline {
-  text-decoration: underline;
-}
-
-@media (max-width: 768px) {
-  .login-card {
-    padding: 40px 24px;
-  }
-
-  .login-title {
-    font-size: 24px;
-  }
-
-  .login-form {
-    max-width: 100%;
-  }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
-

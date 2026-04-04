@@ -32,6 +32,13 @@ const routes = [
   { path: '/profile', name: 'Profile', component: Profile, meta: { requiresAuth: true } },
   { path: '/faq', name: 'FAQ', component: FAQ },
   { path: '/contact', name: 'Contact', component: Contact },
+
+  { 
+    path: '/oauth2/redirect', 
+    name: 'OAuth2Redirect', 
+    component: () => import('./components/OAuth2RedirectHandler.vue') 
+  },
+  
   {
     path: '/admin',
     component: AdminLayout,
@@ -44,6 +51,9 @@ const routes = [
       { path: 'vouchers', name: 'AdminVouchers', component: AdminVouchers },
     ],
   },
+
+
+  
 ]
 
 const router = createRouter({

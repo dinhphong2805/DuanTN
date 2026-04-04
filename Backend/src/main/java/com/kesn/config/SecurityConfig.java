@@ -1,5 +1,6 @@
 package com.kesn.config;
 
+import com.kesn.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,9 +21,16 @@ import java.util.List;
 public class SecurityConfig {
 
     private final AdminAuthFilter adminAuthFilter;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
 
-    public SecurityConfig(AdminAuthFilter adminAuthFilter) {
+    // Inject thêm 2 service mới vào constructor
+    public SecurityConfig(AdminAuthFilter adminAuthFilter, 
+                          CustomOAuth2UserService customOAuth2UserService, 
+                          OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler) {
         this.adminAuthFilter = adminAuthFilter;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.oauth2AuthenticationSuccessHandler = oauth2AuthenticationSuccessHandler;
     }
 
     @Bean
@@ -36,6 +44,7 @@ public class SecurityConfig {
         ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true); // Quan trọng cho OAuth2
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
@@ -46,8 +55,21 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
+                // Filter kiểm tra admin của bạn vẫn giữ nguyên
                 .addFilterBefore(adminAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+                .authorizeHttpRequests(auth -> auth
+                        // Cho phép các endpoint liên quan đến auth và oauth2 mà không cần login
+                        .requestMatchers("/api/auth/**", "/login/**", "/oauth2/**").permitAll()
+                        .anyRequest().permitAll() // Bạn đang để permitAll cho dự án, sau này nên siết lại
+                )
+                // --- CẤU HÌNH GOOGLE LOGIN TẠI ĐÂY ---
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService) // Xử lý lấy thông tin user từ Google
+                        )
+                        .successHandler(oauth2AuthenticationSuccessHandler) // Xử lý sau khi đăng nhập thành công (tạo token)
+                );
+        
         return http.build();
     }
 
