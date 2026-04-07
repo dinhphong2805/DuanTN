@@ -1,15 +1,12 @@
-// File: com/kesn/controller/WebhookController.java
 package com.kesn.controller;
 
-import com.kesn.dto.WebhookRequest;
 import com.kesn.entity.Order;
 import com.kesn.repository.OrderRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -21,44 +18,43 @@ public class WebhookController {
         this.orderRepository = orderRepository;
     }
 
-    // API này sẽ được bên thứ 3 (SePay/Casso) gọi tự động khi tài khoản ngân hàng có tiền vào
-    @PostMapping("/webhook")
-    public ResponseEntity<String> handleWebhook(@RequestBody WebhookRequest req) {
-        
-        // 1. Chỉ xử lý khi có dòng tiền VÀO tài khoản
-        if (!"in".equalsIgnoreCase(req.getTransferType())) {
-            return ResponseEntity.ok("Bỏ qua giao dịch trừ tiền");
-        }
-
-        // Nội dung khách ghi khi chuyển (VD: "NGUYEN VAN A chuyen tien DH123")
-        String transferContent = req.getContent() != null ? req.getContent().toUpperCase() : "";
-        
-        // 2. Dùng Regex để tìm mã đơn hàng bắt đầu bằng "DH" kèm theo các chữ số
-        Pattern pattern = Pattern.compile("DH(\\d+)");
-        Matcher matcher = pattern.matcher(transferContent);
-
-        if (matcher.find()) {
-            // Lấy ra phần số (VD: lấy ra 123 từ DH123)
-            Long orderId = Long.parseLong(matcher.group(1));
+    /**
+     * VNPAY IPN: API này để VNPAY gọi Server-to-Server.
+     * Ngay cả khi khách tắt trình duyệt, đơn hàng vẫn được cập nhật 'paid'.
+     */
+    @GetMapping("/vnpay-ipn")
+    public String vnpayIPN(@RequestParam Map<String, String> params) {
+        try {
+            // 1. Lấy các thông số cần thiết
+            String vnp_ResponseCode = params.get("vnp_ResponseCode");
+            String vnp_TxnRef = params.get("vnp_TxnRef"); // Đây chính là Order ID của bạn
             
-            // Tìm đơn hàng trong Database
-            Optional<Order> orderOpt = orderRepository.findById(orderId);
+            // 2. Kiểm tra xem đơn hàng có tồn tại không
+            Optional<Order> orderOpt = orderRepository.findById(Long.parseLong(vnp_TxnRef));
+            
             if (orderOpt.isPresent()) {
                 Order order = orderOpt.get();
                 
-                // 3. Kiểm tra: Đơn đang pending VÀ khách chuyển ĐỦ hoặc DƯ tiền không?
-                if ("pending".equals(order.getStatus()) && 
-                    req.getTransferAmount().compareTo(order.getTotal()) >= 0) {
-                    
-                    // CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG THÀNH "PAID"
-                    order.setStatus("paid"); 
-                    orderRepository.save(order);
-                    
-                    return ResponseEntity.ok("Thành công: Đã cập nhật trạng thái đơn hàng " + orderId);
+                // 3. Kiểm tra trạng thái đơn hàng (Chỉ xử lý nếu đang pending)
+                if (!"pending".equals(order.getStatus())) {
+                    return "{\"RspCode\":\"02\",\"Message\":\"Order already confirmed\"}";
                 }
+
+                // 4. Kiểm tra mã phản hồi (00 là thành công)
+                if ("00".equals(vnp_ResponseCode)) {
+                    order.setStatus("paid");
+                    orderRepository.save(order);
+                    // Trả về định dạng JSON mà VNPAY yêu cầu
+                    return "{\"RspCode\":\"00\",\"Message\":\"Confirm Success\"}";
+                } else {
+                    // Nếu khách hủy hoặc lỗi, bạn có thể để 'failed' hoặc giữ 'pending'
+                    return "{\"RspCode\":\"00\",\"Message\":\"Confirm Success (Payment Failed)\"}";
+                }
+            } else {
+                return "{\"RspCode\":\"01\",\"Message\":\"Order not found\"}";
             }
+        } catch (Exception e) {
+            return "{\"RspCode\":\"99\",\"Message\":\"Unknown error\"}";
         }
-        
-        return ResponseEntity.ok("Giao dịch đã ghi nhận nhưng không tìm thấy đơn hàng hợp lệ");
     }
 }
