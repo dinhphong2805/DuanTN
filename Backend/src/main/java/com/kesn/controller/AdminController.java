@@ -375,6 +375,7 @@ public class AdminController {
             return ResponseEntity.badRequest().build();
         }
         if (product.getPrice() == null) product.setPrice(java.math.BigDecimal.ZERO);
+        if (product.getStockQty() == null) product.setStockQty(0);
         Product saved = productRepository.save(product);
         return ResponseEntity.ok(saved);
     }
@@ -389,6 +390,7 @@ public class AdminController {
                     p.setBrand(body.getBrand());
                     p.setCategory(body.getCategory());
                     p.setImageUrl(body.getImageUrl());
+                    if (body.getStockQty() != null) p.setStockQty(body.getStockQty());
                     return ResponseEntity.ok(productRepository.save(p));
                 })
                 .orElse(ResponseEntity.notFound().build());

@@ -19,7 +19,8 @@ import AdminProducts from './components/admin/AdminProducts.vue'
 import AdminOrders from './components/admin/AdminOrders.vue'
 import AdminUsers from './components/admin/AdminUsers.vue'
 import AdminVouchers from './components/admin/AdminVouchers.vue'
-import PaymentReturn from './components/PaymentReturn.vue' 
+import PaymentReturn from './components/PaymentReturn.vue'
+import AdminImports from './components/admin/AdminImports.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Index },
@@ -60,6 +61,7 @@ const routes = [
       { path: 'orders', name: 'AdminOrders', component: AdminOrders },
       { path: 'users', name: 'AdminUsers', component: AdminUsers },
       { path: 'vouchers', name: 'AdminVouchers', component: AdminVouchers },
+      { path: 'imports', name: 'AdminImports', component: AdminImports },
     ],
   },
 ]

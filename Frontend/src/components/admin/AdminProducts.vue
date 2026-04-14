@@ -60,6 +60,7 @@
             <th width="80">Ảnh</th>
             <th>Tên sản phẩm</th>
             <th>Phân loại</th>
+            <th>Tồn kho</th>
             <th>Giá bán (VNĐ)</th>
             <th class="text-right">Thao tác</th>
           </tr>
@@ -82,6 +83,7 @@
                 <span class="badge category" v-if="p.category">{{ p.category }}</span>
               </div>
             </td>
+            <td>{{ p.stockQty ?? 0 }}</td>
             <td class="price-col">{{ formatPrice(p.price) }} ₫</td>
             <td class="action-col">
               <button class="action-btn edit" @click="openForm(p)">Sửa</button>
@@ -127,6 +129,10 @@
               <div class="form-group">
                 <label>Giá (VNĐ) <span class="req">*</span></label>
                 <input v-model.number="form.price" type="number" required min="0" placeholder="0" />
+              </div>
+              <div class="form-group">
+                <label>Tồn kho ban đầu</label>
+                <input v-model.number="form.stockQty" type="number" min="0" placeholder="0" />
               </div>
               <div class="form-group">
                 <label>Thương hiệu</label>
@@ -211,7 +217,7 @@ const filters = reactive({
 })
 
 const form = reactive({
-  name: '', price: 0, brand: '', category: '', description: '', images: [],
+  name: '', price: 0, stockQty: 0, brand: '', category: '', description: '', images: [],
 })
 
 const pageNumbers = computed(() => {
@@ -338,11 +344,11 @@ function openForm(p = null) {
   formError.value = ''
   if (p) {
     editingId.value = p.id
-    form.name = p.name || ''; form.price = p.price || 0; form.brand = p.brand || '';
+    form.name = p.name || ''; form.price = p.price || 0; form.stockQty = p.stockQty ?? 0; form.brand = p.brand || '';
     form.category = p.category || ''; form.description = p.description || '';
     form.images = parseImageUrls(p.imageUrl)
   } else {
-    editingId.value = null; form.name = ''; form.price = 0; form.brand = ''; form.category = ''; form.description = ''; form.images = []
+    editingId.value = null; form.name = ''; form.price = 0; form.stockQty = 0; form.brand = ''; form.category = ''; form.description = ''; form.images = []
   }
   showForm.value = true
 }
@@ -352,6 +358,7 @@ async function saveProduct() {
   try {
     const payload = {
       name: form.name, price: Number(form.price) || 0, brand: form.brand || null,
+      stockQty: Number(form.stockQty) || 0,
       category: form.category || null, description: form.description || null,
       imageUrl: serializeImageUrls(form.images) || null,
     }

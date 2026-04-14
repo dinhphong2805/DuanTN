@@ -43,6 +43,14 @@
           </span>
           <span>Mã giảm giá</span>
         </router-link>
+        <router-link to="/admin/imports" class="nav-link" active-class="active">
+          <span class="nav-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 7.5h18M5.25 7.5v10.125A2.25 2.25 0 007.5 19.875h9a2.25 2.25 0 002.25-2.25V7.5M9.75 12l2.25 2.25L14.25 12M12 5.25v9" />
+            </svg>
+          </span>
+          <span>Nhập hàng</span>
+        </router-link>
       </nav>
       <div class="admin-footer">
         <router-link to="/" class="link link--home">

@@ -30,6 +30,9 @@ public class Product {
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
 
+    @Column(name = "stock_qty")
+    private Integer stockQty = 0;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -46,4 +49,6 @@ public class Product {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public Integer getStockQty() { return stockQty; }
+    public void setStockQty(Integer stockQty) { this.stockQty = stockQty; }
 }

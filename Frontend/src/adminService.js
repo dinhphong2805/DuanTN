@@ -55,3 +55,9 @@ export const uploadImage = (file) => {
             throw err;
         });
 };
+
+export const getImportReceipts = (params) => adminApi.get('/import-receipts', { params }).then(res => res.data);
+export const getImportReceiptDetail = (id) => adminApi.get(`/import-receipts/${id}`).then(res => res.data);
+export const createImportReceipt = (payload) => adminApi.post('/import-receipts', payload).then(res => res.data);
+export const updateImportReceipt = (id, payload) => adminApi.put(`/import-receipts/${id}`, payload).then(res => res.data);
+export const deleteImportReceipt = (id) => adminApi.delete(`/import-receipts/${id}`).then(res => res.data);
