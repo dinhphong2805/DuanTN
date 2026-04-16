@@ -173,8 +173,8 @@ function lineTotal(item) {
 
 const timelineSteps = computed(() => {
   const s = order.value?.status || 'pending'
-  const rank = { pending: 1, paid: 2, shipping: 3, delivered: 4 }
-  const r = rank[s] ?? 1
+  const rank = { pending: 2, paid: 2, shipping: 3, delivered: 4 }
+  const r = rank[s] ?? 2
   const steps = [
     { key: 'placed', label: 'Đã đặt' },
     { key: 'proc', label: 'Xử lý' },

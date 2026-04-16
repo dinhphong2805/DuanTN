@@ -6,3 +6,13 @@
 # gemini.model=gemini-2.5-flash
 #
 # Hoặc dùng biến môi trường GEMINI_API_KEY (ghi đè khi set).
+
+# ---- VNPAY Sandbox config ----
+# Không commit các giá trị thật.
+#
+# Option 1: set qua biến môi trường:
+# - VNPAY_TMN_CODE
+# - VNPAY_HASH_SECRET
+# - VNPAY_RETURN_URL
+#
+# Option 2: tự copy phần này vào `application-local.properties` (nếu bạn chọn dùng file).

@@ -22,6 +22,9 @@ public class Product {
 
     private String brand;
 
+    @Column(name = "category_id")
+    private Long categoryId;
+
     private String category;
 
     @Column(name = "image_url")
@@ -43,6 +46,8 @@ public class Product {
     public void setDescription(String description) { this.description = description; }
     public String getBrand() { return brand; }
     public void setBrand(String brand) { this.brand = brand; }
+    public Long getCategoryId() { return categoryId; }
+    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
     public String getImageUrl() { return imageUrl; }

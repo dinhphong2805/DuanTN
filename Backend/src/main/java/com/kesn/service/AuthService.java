@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Random;
 
 @Service
@@ -14,11 +15,17 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.kesn.repository.VoucherRepository voucherRepository;
+    private final com.kesn.repository.UserVoucherRepository userVoucherRepository;
     private static final Random RANDOM = new Random();
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       com.kesn.repository.VoucherRepository voucherRepository,
+                       com.kesn.repository.UserVoucherRepository userVoucherRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.voucherRepository = voucherRepository;
+        this.userVoucherRepository = userVoucherRepository;
     }
 
     public LoginResponse login(LoginRequest req) {
@@ -49,6 +56,17 @@ public class AuthService {
         user.setPhone(req.getPhone());
         user.setRole("customer");
         user = userRepository.save(user);
+
+        // Assign default signup vouchers
+        List<com.kesn.entity.Voucher> defaultVouchers = voucherRepository.findByIsSignupDefaultTrue();
+        for (com.kesn.entity.Voucher v : defaultVouchers) {
+            com.kesn.entity.UserVoucher uv = new com.kesn.entity.UserVoucher();
+            uv.setUser(user);
+            uv.setVoucher(v);
+            uv.setIsUsed(false);
+            userVoucherRepository.save(uv);
+        }
+
         LoginResponse.UserDto dto = new LoginResponse.UserDto(
                 user.getId(),
                 user.getEmail(),

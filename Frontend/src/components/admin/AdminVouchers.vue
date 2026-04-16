@@ -22,13 +22,15 @@
         <tbody>
           <tr v-for="v in vouchers" :key="v.id">
             <td>{{ v.id }}</td>
-            <td><strong>{{ v.code }}</strong></td>
+            <td><strong>{{ v.code }}</strong> <span v-if="v.isSignupDefault" class="badge-new">Tặng ĐK</span></td>
             <td>{{ v.type === 'fixed' ? 'Cố định' : 'Phần trăm' }}</td>
             <td>
               {{ v.type === 'fixed' ? formatPrice(v.discount) + ' VNĐ' : v.discount + '%' }}
             </td>
             <td>{{ formatPrice(v.minOrder || 0) }} VNĐ</td>
+            <td><span :class="v.status === 'active' ? 'status-active' : 'status-inactive'">{{ v.status === 'active' ? 'Hoạt động' : 'Đã khóa' }}</span></td>
             <td>
+              <button type="button" class="btn-sm" @click="openForm(v)">Sửa</button>
               <button type="button" class="btn-sm danger" @click="confirmDelete(v)">Xóa</button>
             </td>
           </tr>
@@ -41,18 +43,27 @@
     <!-- Modal form -->
     <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
       <div class="modal">
-        <h3>Thêm mã giảm giá</h3>
+        <h3>{{ isEdit ? 'Sửa mã giảm giá' : 'Thêm mã giảm giá' }}</h3>
         <form @submit.prevent="saveVoucher">
           <div class="form-group">
             <label>Mã *</label>
-            <input v-model="form.code" required placeholder="VD: KESN10" />
+            <input v-model="form.code" required placeholder="VD: KESN10" :disabled="isEdit" />
           </div>
-          <div class="form-group">
-            <label>Loại</label>
-            <select v-model="form.type">
-              <option value="percent">Phần trăm (%)</option>
-              <option value="fixed">Cố định (VNĐ)</option>
-            </select>
+          <div class="form-group row-group">
+            <div>
+                <label>Loại</label>
+                <select v-model="form.type">
+                  <option value="percent">Phần trăm (%)</option>
+                  <option value="fixed">Cố định (VNĐ)</option>
+                </select>
+            </div>
+            <div>
+                <label>Trạng thái</label>
+                <select v-model="form.status">
+                  <option value="active">Hoạt động</option>
+                  <option value="inactive">Khóa (Bảo trì)</option>
+                </select>
+            </div>
           </div>
           <div class="form-group">
             <label>Giá trị giảm *</label>
@@ -62,6 +73,12 @@
           <div class="form-group">
             <label>Đơn tối thiểu (VNĐ)</label>
             <input v-model.number="form.minOrder" type="number" min="0" placeholder="0" />
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" v-model="form.isSignupDefault" />
+              Auto-grant: Tặng tự động cho người dùng mới đăng ký
+            </label>
           </div>
           <p v-if="formError" class="error">{{ formError }}</p>
           <div class="modal-actions">
@@ -76,19 +93,23 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getVouchers, createVoucher, deleteVoucher } from '../../api/services/adminService'
+import { getVouchers, createVoucher, deleteVoucher, updateVoucher } from '../../api/services/adminService'
 
 const vouchers = ref([])
 const loading = ref(true)
 const showForm = ref(false)
 const saving = ref(false)
 const formError = ref('')
+const isEdit = ref(false)
 
 const form = reactive({
+  id: null,
   code: '',
   type: 'percent',
   discount: 0,
   minOrder: 0,
+  status: 'active',
+  isSignupDefault: false
 })
 
 function formatPrice(n) {
@@ -106,12 +127,27 @@ async function load() {
   }
 }
 
-function openForm() {
+function openForm(v = null) {
   formError.value = ''
-  form.code = ''
-  form.type = 'percent'
-  form.discount = 0
-  form.minOrder = 0
+  if (v) {
+      isEdit.value = true
+      form.id = v.id
+      form.code = v.code
+      form.type = v.type
+      form.discount = v.discount
+      form.minOrder = v.minOrder
+      form.status = v.status || 'active'
+      form.isSignupDefault = !!v.isSignupDefault
+  } else {
+      isEdit.value = false
+      form.id = null
+      form.code = ''
+      form.type = 'percent'
+      form.discount = 0
+      form.minOrder = 0
+      form.status = 'active'
+      form.isSignupDefault = false
+  }
   showForm.value = true
 }
 
@@ -119,12 +155,21 @@ async function saveVoucher() {
   formError.value = ''
   saving.value = true
   try {
-    await createVoucher({
+    const payload = {
       code: String(form.code).trim().toUpperCase(),
       type: form.type,
       discount: Number(form.discount) || 0,
       minOrder: Number(form.minOrder) || 0,
-    })
+      status: form.status,
+      isSignupDefault: form.isSignupDefault
+    }
+    
+    if (isEdit.value) {
+        await updateVoucher(form.id, payload)
+    } else {
+        await createVoucher(payload)
+    }
+    
     showForm.value = false
     await load()
   } catch (e) {
@@ -296,4 +341,30 @@ onMounted(load)
   font-weight: 600;
   cursor: pointer;
 }
+
+.row-group { display: flex; gap: 15px; }
+.row-group > div { flex: 1; }
+
+.checkbox-group label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500 !important;
+  cursor: pointer;
+  color: #374151;
+}
+.checkbox-group input { width: auto; }
+
+.badge-new {
+  font-size: 10px;
+  background-color: var(--accent, #007aff);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.status-active { color: #059669; background-color: #d1fae5; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.status-inactive { color: #dc2626; background-color: #fee2e2; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
 </style>

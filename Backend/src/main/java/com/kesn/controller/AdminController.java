@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -388,6 +389,7 @@ public class AdminController {
                     p.setPrice(body.getPrice());
                     p.setDescription(body.getDescription());
                     p.setBrand(body.getBrand());
+                    p.setCategoryId(body.getCategoryId());
                     p.setCategory(body.getCategory());
                     p.setImageUrl(body.getImageUrl());
                     if (body.getStockQty() != null) p.setStockQty(body.getStockQty());
@@ -419,15 +421,69 @@ public class AdminController {
     }
 
     @PatchMapping("/orders/{id}/status")
-    public ResponseEntity<Order> updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    @Transactional
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String status = body.get("status");
         if (status == null || status.isBlank()) return ResponseEntity.badRequest().build();
-        return orderRepository.findById(id)
-                .map(o -> {
-                    o.setStatus(status);
-                    return ResponseEntity.ok(orderRepository.save(o));
-                })
-                .orElse(ResponseEntity.notFound().build());
+        Order o = orderRepository.findById(id).orElse(null);
+        if (o == null) return ResponseEntity.notFound().build();
+
+        String nextStatus = status.trim().toLowerCase();
+        String prevStatus = o.getStatus() == null ? "" : o.getStatus().trim().toLowerCase();
+
+        if (!prevStatus.equals(nextStatus)) {
+            String stockError = null;
+            if (!"delivered".equals(prevStatus) && "delivered".equals(nextStatus)) {
+                stockError = applyDeliveredStock(o, -1);
+            } else if ("delivered".equals(prevStatus) && !"delivered".equals(nextStatus)) {
+                stockError = applyDeliveredStock(o, 1);
+            }
+            if (stockError != null) {
+                return ResponseEntity.badRequest().body(Map.of("message", stockError));
+            }
+        }
+
+        o.setStatus(nextStatus);
+        return ResponseEntity.ok(orderRepository.save(o));
+    }
+
+    private String applyDeliveredStock(Order order, int direction) {
+        if (order.getItems() == null || order.getItems().isEmpty()) return null;
+        List<Product> touched = new ArrayList<>();
+        for (OrderItem item : order.getItems()) {
+            int qty = item.getQuantity() != null ? item.getQuantity() : 0;
+            if (qty <= 0) continue;
+
+            Product product = resolveProductForOrderItem(item);
+            if (product == null) {
+                return "Không tìm thấy sản phẩm để cập nhật tồn kho cho mục: " + item.getProductName();
+            }
+
+            int current = product.getStockQty() == null ? 0 : product.getStockQty();
+            int next = current + (direction * qty);
+            if (next < 0) {
+                return "Tồn kho không đủ cho sản phẩm: " + product.getName();
+            }
+            product.setStockQty(next);
+            touched.add(product);
+        }
+        if (!touched.isEmpty()) {
+            productRepository.saveAll(touched);
+        }
+        return null;
+    }
+
+    private Product resolveProductForOrderItem(OrderItem item) {
+        if (item.getProductId() != null) {
+            return productRepository.findById(item.getProductId()).orElse(null);
+        }
+        if (item.getProductName() == null || item.getProductName().isBlank()) {
+            return null;
+        }
+        return productRepository.findByNameContainingIgnoreCase(item.getProductName()).stream()
+                .filter(p -> p.getName() != null && p.getName().equalsIgnoreCase(item.getProductName().trim()))
+                .findFirst()
+                .orElse(null);
     }
 
     // ==========================================

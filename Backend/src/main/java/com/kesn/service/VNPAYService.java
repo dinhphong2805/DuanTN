@@ -13,6 +13,11 @@ import java.util.*;
 public class VNPAYService {
 
     public String createPaymentUrl(Order order, HttpServletRequest request) throws Exception {
+        if (VNPAYConfig.vnp_TmnCode == null || VNPAYConfig.vnp_TmnCode.isBlank()
+                || VNPAYConfig.vnp_HashSecret == null || VNPAYConfig.vnp_HashSecret.isBlank()) {
+            throw new IllegalArgumentException("Missing VNPAY terminal config. Please set env VNPAY_TMN_CODE and VNPAY_HASH_SECRET.");
+        }
+
         long amount = order.getTotal().longValue() * 100;
         String vnp_TxnRef = String.valueOf(order.getId());
 

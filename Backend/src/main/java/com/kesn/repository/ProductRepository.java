@@ -9,6 +9,9 @@ import java.util.List;
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
     List<Product> findByNameContainingIgnoreCase(String name);
 
+    List<Product> findByCategory(String category);
+    List<Product> findByCategoryId(Long categoryId);
+
     /** Admin / báo cáo: sản phẩm mới (id lớn hơn) lên đầu khi cần list đầy đủ */
     List<Product> findAllByOrderByIdDesc();
 }

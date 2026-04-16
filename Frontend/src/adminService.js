@@ -37,6 +37,7 @@ export const getProducts = (params) => adminApi.get('/products', { params }).the
 
 export const getBrandNames = () => adminApi.get('/brands/names').then(res => res.data);
 export const getCategoryNames = () => adminApi.get('/categories/names').then(res => res.data);
+export const getCategories = () => adminApi.get('/categories').then(res => res.data);
 export const createProduct = (p) => adminApi.post('/products', p).then(res => res.data);
 
 export const updateProduct = (id, p) => adminApi.put(`/products/${id}`, p).then(res => res.data);

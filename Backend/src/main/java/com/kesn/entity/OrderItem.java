@@ -20,6 +20,9 @@ public class OrderItem {
     @Column(name = "product_name")
     private String productName;
 
+    @Column(name = "product_id")
+    private Long productId;
+
     private Integer quantity = 1;
 
     @Column(name = "unit_price", precision = 19, scale = 0)
@@ -31,6 +34,8 @@ public class OrderItem {
     public void setOrder(Order order) { this.order = order; }
     public String getProductName() { return productName; }
     public void setProductName(String productName) { this.productName = productName; }
+    public Long getProductId() { return productId; }
+    public void setProductId(Long productId) { this.productId = productId; }
     public Integer getQuantity() { return quantity; }
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
     public BigDecimal getUnitPrice() { return unitPrice; }

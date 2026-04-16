@@ -41,6 +41,9 @@ public class Voucher {
     @Column(name = "Status", nullable = false, length = 20)
     private String status = "active";
 
+    @Column(name = "is_signup_default")
+    private Boolean isSignupDefault = false;
+
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();
@@ -67,4 +70,6 @@ public class Voucher {
     public void setEndAt(Instant endAt) { this.endAt = endAt; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public Boolean getIsSignupDefault() { return isSignupDefault; }
+    public void setIsSignupDefault(Boolean isSignupDefault) { this.isSignupDefault = isSignupDefault; }
 }

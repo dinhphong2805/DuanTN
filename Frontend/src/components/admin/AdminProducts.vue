@@ -26,7 +26,7 @@
         <div class="filter-item">
           <select v-model="filters.category" @change="applyFilters" class="form-select">
             <option value="">Tất cả danh mục</option>
-            <option v-for="c in categoryList" :key="c" :value="c">{{ c }}</option>
+            <option v-for="c in categoryList" :key="c.id" :value="c.name">{{ c.name }}</option>
           </select>
         </div>
         <div class="filter-item price-range">
@@ -145,9 +145,9 @@
 
             <div class="form-group">
               <label>Danh mục</label>
-              <select v-model="form.category" class="form-select">
-                <option value="">-- Chọn danh mục --</option>
-                <option v-for="c in categoryList" :key="c" :value="c">{{ c }}</option>
+              <select v-model="form.categoryId" class="form-select">
+                <option :value="null">-- Chọn danh mục --</option>
+                <option v-for="c in categoryList" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
             </div>
             
@@ -189,7 +189,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 
 /* LƯU Ý: Nếu đường dẫn import này bị lỗi, bro nhớ sửa lại cho khớp với file adminService.js của bro nhé */
-import { getProducts, createProduct, updateProduct, deleteProduct, uploadImage, getBrandNames, getCategoryNames } from '../../adminService'
+import { getProducts, createProduct, updateProduct, deleteProduct, uploadImage, getBrandNames, getCategories } from '../../adminService'
 import { API_BASE_URL } from '../../api/config'
 
 const products = ref([])
@@ -217,7 +217,7 @@ const filters = reactive({
 })
 
 const form = reactive({
-  name: '', price: 0, stockQty: 0, brand: '', category: '', description: '', images: [],
+  name: '', price: 0, stockQty: 0, brand: '', category: '', categoryId: null, description: '', images: [],
 })
 
 const pageNumbers = computed(() => {
@@ -276,9 +276,9 @@ function dedupeSorted(list) {
 async function loadOptions() {
   try {
     const brands = await getBrandNames()
-    const cats = await getCategoryNames()
+    const cats = await getCategories()
     brandList.value = dedupeSorted(brands)
-    categoryList.value = dedupeSorted(cats)
+    categoryList.value = cats || []
   } catch (error) {
     console.error("Lỗi tải danh mục/thương hiệu:", error)
   }
@@ -345,10 +345,10 @@ function openForm(p = null) {
   if (p) {
     editingId.value = p.id
     form.name = p.name || ''; form.price = p.price || 0; form.stockQty = p.stockQty ?? 0; form.brand = p.brand || '';
-    form.category = p.category || ''; form.description = p.description || '';
+    form.category = p.category || ''; form.categoryId = p.categoryId || null; form.description = p.description || '';
     form.images = parseImageUrls(p.imageUrl)
   } else {
-    editingId.value = null; form.name = ''; form.price = 0; form.stockQty = 0; form.brand = ''; form.category = ''; form.description = ''; form.images = []
+    editingId.value = null; form.name = ''; form.price = 0; form.stockQty = 0; form.brand = ''; form.category = ''; form.categoryId = null; form.description = ''; form.images = []
   }
   showForm.value = true
 }
@@ -359,8 +359,15 @@ async function saveProduct() {
     const payload = {
       name: form.name, price: Number(form.price) || 0, brand: form.brand || null,
       stockQty: Number(form.stockQty) || 0,
-      category: form.category || null, description: form.description || null,
+      description: form.description || null,
       imageUrl: serializeImageUrls(form.images) || null,
+      categoryId: form.categoryId || null,
+      category: form.category || null
+    }
+    
+    if (form.categoryId) {
+        const selectedCat = categoryList.value.find(c => c.id === form.categoryId);
+        if (selectedCat) payload.category = selectedCat.name;
     }
     if (editingId.value) await updateProduct(editingId.value, payload)
     else await createProduct(payload)

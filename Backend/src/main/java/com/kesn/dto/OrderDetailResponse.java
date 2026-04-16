@@ -24,6 +24,7 @@ public class OrderDetailResponse {
     public List<ItemRow> items;
 
     public static class ItemRow {
+        public Long productId;
         public String productName;
         public Integer quantity;
         public BigDecimal unitPrice;
@@ -50,6 +51,7 @@ public class OrderDetailResponse {
 
     private static ItemRow mapItem(OrderItem i) {
         ItemRow row = new ItemRow();
+        row.productId = i.getProductId();
         row.productName = i.getProductName();
         row.quantity = i.getQuantity();
         row.unitPrice = i.getUnitPrice();

@@ -39,7 +39,34 @@ public class AdminVoucherController {
         v.setDiscount(toBigDecimal(body.get("discount"), BigDecimal.ZERO));
         v.setType(body.containsKey("type") ? (String) body.get("type") : "percent");
         v.setMinOrder(toBigDecimal(body.get("minOrder"), BigDecimal.ZERO));
+        
+        if (body.containsKey("isSignupDefault")) {
+            v.setIsSignupDefault(Boolean.parseBoolean(body.get("isSignupDefault").toString()));
+        }
+
         return ResponseEntity.ok(voucherRepository.save(v));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        return voucherRepository.findById(id).map(v -> {
+            if (body.containsKey("discount")) {
+                v.setDiscount(toBigDecimal(body.get("discount"), BigDecimal.ZERO));
+            }
+            if (body.containsKey("type")) {
+                v.setType((String) body.get("type"));
+            }
+            if (body.containsKey("minOrder")) {
+                v.setMinOrder(toBigDecimal(body.get("minOrder"), BigDecimal.ZERO));
+            }
+            if (body.containsKey("status")) {
+                v.setStatus((String) body.get("status"));
+            }
+            if (body.containsKey("isSignupDefault")) {
+                v.setIsSignupDefault(Boolean.parseBoolean(body.get("isSignupDefault").toString()));
+            }
+            return ResponseEntity.ok(voucherRepository.save(v));
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

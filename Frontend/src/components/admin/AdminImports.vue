@@ -17,18 +17,24 @@
       <table v-if="!loading && receipts.length" class="table">
         <thead>
           <tr>
+            <th width="50">STT</th>
             <th>Mã phiếu</th>
             <th>Nhà cung cấp</th>
+            <th>Sản phẩm</th>
             <th>Người tạo</th>
-            <th>Ngày tạo</th>
+            <th>Ngày nhập</th>
             <th>Tổng tiền</th>
             <th class="right">Thao tác</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="r in receipts" :key="r.id">
+          <tr v-for="(r, idx) in receipts" :key="r.id">
+            <td>{{ idx + 1 }}</td>
             <td>{{ r.code }}</td>
             <td>{{ r.supplierName || '—' }}</td>
+            <td :title="getProductSnapshot(r.items)">
+              {{ getProductSnapshot(r.items).slice(0, 30) }}{{ getProductSnapshot(r.items).length > 30 ? '...' : '' }}
+            </td>
             <td>{{ r.createdBy || '—' }}</td>
             <td>{{ formatDate(r.createdAt) }}</td>
             <td>{{ formatMoney(r.totalCost) }}</td>
@@ -62,7 +68,7 @@
           </label>
           <label>
             Người tạo
-            <input v-model.trim="form.createdBy" placeholder="Admin tạo phiếu" />
+            <input v-model.trim="form.createdBy" placeholder="Admin tạo phiếu" disabled />
           </label>
           <label>
             Ghi chú
@@ -118,6 +124,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useAuthStore } from '../../authStore'
 import {
   createImportReceipt,
   deleteImportReceipt,
@@ -127,6 +134,7 @@ import {
   updateImportReceipt,
 } from '../../adminService'
 
+const auth = useAuthStore()
 const loading = ref(false)
 const saving = ref(false)
 const receipts = ref([])
@@ -159,12 +167,22 @@ function lineTotal(it) {
   return (Number(it.quantity) || 0) * (Number(it.unitCost) || 0)
 }
 
+function currentCreatorName() {
+  const user = auth.state?.user
+  return user?.fullName || user?.full_name || user?.email || ''
+}
+
+function getProductSnapshot(items) {
+  if (!items || !items.length) return '—'
+  return items.map(i => `${i.productName} (${i.quantity})`).join(', ')
+}
+
 function resetForm() {
   editingId.value = null
   error.value = ''
   form.code = ''
   form.supplierName = ''
-  form.createdBy = ''
+  form.createdBy = currentCreatorName()
   form.note = ''
   form.items = [{ productId: null, quantity: 1, unitCost: 0 }]
 }

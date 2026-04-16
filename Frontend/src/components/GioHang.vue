@@ -116,14 +116,18 @@
           <h2 class="summary-title">Tóm tắt</h2>
 
           <div class="voucher-row">
-            <input
-              v-model="voucherCode"
-              placeholder="Nhập mã giảm giá"
+            <select
+              v-model="selectedVoucherCode"
               class="voucher-input"
-              autocomplete="off"
-            />
-            <button type="button" class="btn-apply" :disabled="voucherLoading" @click="applyVoucher">
-              {{ voucherLoading ? '…' : 'Áp dụng' }}
+              @change="applyVoucher"
+            >
+              <option value="">-- Chọn mã giảm giá --</option>
+              <option v-for="v in myVouchers" :key="v.id" :value="v.code">
+                {{ v.code }} (Giảm {{ v.type === 'fixed' ? formatMoney(v.discount) : v.discount + '%' }})
+              </option>
+            </select>
+            <button v-if="appliedVoucher" type="button" class="btn-clear-voucher" @click="removeVoucher">
+              ✕
             </button>
           </div>
           <p v-if="voucherError" class="voucher-err">{{ voucherError }}</p>
@@ -160,17 +164,47 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useCart } from '../cartStore'
-import { validateVoucher } from '../api/services/voucherService'
+import { validateVoucher, getMyVouchers } from '../api/services/voucherService'
 import { API_BASE_URL } from '../api/config'
+import { useVoucherStore } from '../voucherStore'
+import { resolveSessionUserId } from '../authStore'
 
 const cart = useCart()
-const voucherCode = ref('')
+const voucherStore = useVoucherStore()
+
+const myVouchers = ref([])
+const selectedVoucherCode = ref(voucherStore.voucherCode || '')
+
 const voucherLoading = ref(false)
 const voucherError = ref('')
-const appliedVoucher = ref(null)
-const voucherAmount = ref(0)
+
+const appliedVoucher = computed(() => voucherStore.appliedVoucher)
+const voucherAmount = computed(() => voucherStore.discountAmount)
+
+onMounted(async () => {
+  const userId = resolveSessionUserId()
+  if (userId) {
+    try {
+      myVouchers.value = await getMyVouchers(userId)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+  
+  // Re-validate store voucher on mount if total applies
+  if (selectedVoucherCode.value) {
+    applyVoucher()
+  }
+})
+
+watch(() => cart.state.items, () => {
+    // If cart changed, validate again
+    if (selectedVoucherCode.value) {
+        applyVoucher()
+    }
+}, { deep: true })
 
 const PLACEHOLDER_IMG =
   'data:image/svg+xml,' +
@@ -236,20 +270,31 @@ function onQtyChange(key, e) {
   cart.setQuantity(key, v)
 }
 
+function removeVoucher() {
+    selectedVoucherCode.value = ''
+    voucherStore.clearVoucher()
+    voucherError.value = ''
+}
+
 async function applyVoucher() {
-  const code = voucherCode.value?.trim()
-  if (!code) return
+  const code = selectedVoucherCode.value?.trim()
+  if (!code) {
+      voucherStore.clearVoucher()
+      return
+  }
   voucherError.value = ''
   voucherLoading.value = true
+  const userId = resolveSessionUserId()
   try {
-    const res = await validateVoucher(code, subtotal.value)
+    const res = await validateVoucher(code, subtotal.value, userId)
     if (res.valid) {
-      appliedVoucher.value = res.voucher
-      voucherAmount.value = res.amount
+      voucherStore.setVoucher(res.voucher, code, res.amount)
     } else {
+      voucherStore.clearVoucher()
       voucherError.value = res.message || 'Mã không hợp lệ'
     }
   } catch {
+    voucherStore.clearVoucher()
     voucherError.value = 'Không thể kiểm tra mã'
   } finally {
     voucherLoading.value = false
@@ -734,6 +779,25 @@ async function applyVoucher() {
 .btn-apply:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.btn-clear-voucher {
+  flex-shrink: 0;
+  padding: 0;
+  width: 32px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-clear-voucher:hover {
+  background: #f87171;
+  color: #fff;
 }
 
 .voucher-err {

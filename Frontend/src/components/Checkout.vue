@@ -149,6 +149,26 @@
 
           <div class="price-rows">
             <div class="p-row"><span>Tạm tính</span><span>{{ formatPrice(subtotal) }} ₫</span></div>
+            
+            <div class="p-row">
+              <span>Mã giảm giá</span>
+              <select
+                v-model="selectedVoucherCode"
+                class="voucher-select-checkout"
+                @change="applyVoucher"
+              >
+                <option value="">-- Chọn hoặc bỏ mã --</option>
+                <option v-for="v in myVouchers" :key="v.id" :value="v.code">
+                  {{ v.code }} (Giảm {{ v.type === 'fixed' ? formatPrice(v.discount) + 'đ' : v.discount + '%' }})
+                </option>
+              </select>
+            </div>
+            <p v-if="voucherError" style="color: #ef4444; font-size: 13px; text-align: right; margin: -10px 0 10px;">{{ voucherError }}</p>
+            <div class="p-row" v-if="voucherAmount > 0">
+              <span>Giảm giá</span>
+              <span style="color: #ef4444">-{{ formatPrice(voucherAmount) }} ₫</span>
+            </div>
+
             <div class="p-row total-row">
               <span>TỔNG CỘNG</span>
               <span class="grand-total">{{ formatPrice(total) }} ₫</span>
@@ -166,20 +186,33 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCart } from '../cartStore'
-import { useAuthStore } from '../authStore'
+import { resolveSessionUserId, useAuthStore } from '../authStore'
 import { createOrder } from '../api/services/orderService'
+import { validateVoucher, getMyVouchers } from '../api/services/voucherService'
+import { useVoucherStore } from '../voucherStore'
 import { useVuelidate } from '@vuelidate/core'
 import { required, email, minLength, maxLength, helpers } from '@vuelidate/validators'
 
 const router = useRouter(); const cart = useCart(); const auth = useAuthStore()
+const voucherStore = useVoucherStore()
+
 const orderLoading = ref(false); const activeDropdown = ref(null)
 
 const provinces = ref([]); const districts = ref([]); const wards = ref([])
 const selectedCity = ref(''); const selectedDistrict = ref(''); const selectedWard = ref('')
 const citySearch = ref(''); const districtSearch = ref(''); const wardSearch = ref('')
+
+// Voucher logic
+const myVouchers = ref([])
+const selectedVoucherCode = ref(voucherStore.voucherCode || '')
+const voucherLoading = ref(false)
+const voucherError = ref('')
+
+const appliedVoucher = computed(() => voucherStore.appliedVoucher)
+const voucherAmount = computed(() => voucherStore.discountAmount)
 
 const form = reactive({
   fullName: '', phone: '', email: '', address: '', note: '',
@@ -198,7 +231,13 @@ const v$ = useVuelidate(rules, form)
 const toNumber = (t) => Number(String(t || '').replace(/[^\d]/g, ''))
 const formatPrice = (n) => Number(n).toLocaleString('vi-VN')
 const subtotal = computed(() => cart.state.items.reduce((sum, it) => sum + toNumber(it.price) * it.quantity, 0))
-const total = computed(() => subtotal.value)
+const total = computed(() => Math.max(0, subtotal.value - voucherAmount.value))
+
+watch(() => cart.state.items, () => {
+    if (selectedVoucherCode.value) {
+        applyVoucher()
+    }
+}, { deep: true })
 
 const filteredProvinces = computed(() => provinces.value.filter(p => p.full_name.toLowerCase().includes(citySearch.value.toLowerCase())))
 const filteredDistricts = computed(() => districts.value.filter(d => d.full_name.toLowerCase().includes(districtSearch.value.toLowerCase())))
@@ -207,10 +246,38 @@ const filteredWards = computed(() => wards.value.filter(w => w.full_name.toLower
 const openDropdown = (type) => activeDropdown.value = type
 const handleClickOutside = (e) => { if (!e.target.closest('.select-box')) activeDropdown.value = null }
 
+async function applyVoucher() {
+  const code = selectedVoucherCode.value?.trim()
+  if (!code) { voucherStore.clearVoucher(); return }
+  voucherError.value = ''; voucherLoading.value = true
+  const userId = resolveSessionUserId()
+  try {
+    const res = await validateVoucher(code, subtotal.value, userId)
+    if (res.valid) {
+      voucherStore.setVoucher(res.voucher, code, res.amount)
+    } else {
+      voucherStore.clearVoucher()
+      voucherError.value = res.message || 'Mã không hợp lệ'
+    }
+  } catch { voucherStore.clearVoucher(); voucherError.value = 'Không thể kiểm tra mã' } 
+  finally { voucherLoading.value = false }
+}
+
+function removeVoucher() {
+    selectedVoucherCode.value = ''; voucherStore.clearVoucher(); voucherError.value = ''
+}
+
 onMounted(async () => {
   const u = auth.state?.user
   if (u) { form.fullName = u.fullName || ''; form.phone = u.phone || ''; form.email = u.email || '' }
   document.addEventListener('click', handleClickOutside)
+  
+  const userId = resolveSessionUserId()
+  if (userId) {
+      myVouchers.value = await getMyVouchers(userId)
+  }
+  if (selectedVoucherCode.value) applyVoucher()
+
   try {
     const res = await fetch('https://esgoo.net/api-tinhthanh/1/0.htm')
     const json = await res.json(); if (json.error === 0) provinces.value = json.data
@@ -243,18 +310,29 @@ async function placeOrder() {
   
   orderLoading.value = true
   try {
+    const userId = resolveSessionUserId()
     const fullAddress = [form.address, wardSearch.value, districtSearch.value, citySearch.value].join(', ')
     const res = await createOrder({
       ...form,
+      customerName: form.fullName,
+      customerEmail: form.email,
+      customerPhone: form.phone,
+      userId,
       address: fullAddress,
       total: total.value,
-      items: cart.state.items.map(it => ({ productName: it.name, quantity: it.quantity, unitPrice: toNumber(it.price) }))
+      voucherCode: selectedVoucherCode.value || undefined,
+      items: cart.state.items.map(it => ({
+        productId: it.id,
+        productName: it.name,
+        quantity: it.quantity,
+        unitPrice: toNumber(it.price),
+      }))
     })
     
     if (form.paymentMethod === 'bank' && res.paymentUrl) {
       window.location.href = res.paymentUrl;
     } else {
-      cart.clear(); router.push('/profile?tab=orders'); alert('Thành công!')
+      cart.clear(); voucherStore.clearVoucher(); router.push('/profile?tab=orders'); alert('Thành công!')
     }
   } catch (e) { alert(e.message) } finally { orderLoading.value = false }
 }
@@ -321,4 +399,18 @@ async function placeOrder() {
 @keyframes fadeRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
 
 @media (max-width: 1024px) { .checkout-layout { grid-template-columns: 1fr; } .summary-god-card { position: static; } }
+
+.voucher-select-checkout {
+  max-width: 180px;
+  padding: 6px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  background-color: transparent;
+  color: #fff;
+}
+.voucher-select-checkout option {
+  color: #000;
+}
 </style>

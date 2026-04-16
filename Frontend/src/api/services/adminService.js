@@ -92,6 +92,11 @@ export async function createVoucher(voucher) {
   return data
 }
 
+export async function updateVoucher(id, voucher) {
+  const { data } = await client.put(`admin/vouchers/${id}`, voucher)
+  return data
+}
+
 export async function deleteVoucher(id) {
   await client.delete(`admin/vouchers/${id}`)
 }
