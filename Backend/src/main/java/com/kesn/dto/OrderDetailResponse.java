@@ -21,6 +21,7 @@ public class OrderDetailResponse {
     public BigDecimal total;
     /** ISO-8601 string */
     public String createdAt;
+    public String cancelReason;
     public List<ItemRow> items;
 
     public static class ItemRow {
@@ -41,6 +42,7 @@ public class OrderDetailResponse {
         r.status = o.getStatus();
         r.total = o.getTotal();
         r.createdAt = o.getCreatedAt() != null ? o.getCreatedAt().toString() : null;
+        r.cancelReason = o.getCancelReason();
         if (o.getItems() != null && !o.getItems().isEmpty()) {
             r.items = o.getItems().stream().map(OrderDetailResponse::mapItem).collect(Collectors.toList());
         } else {

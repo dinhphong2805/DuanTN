@@ -1,0 +1,177 @@
+/* ==========================================================================
+   Layout (Navbar & Main Area)
+   ========================================================================== */
+
+/* Bộ khung chứa toàn bộ hệ thống Admin */
+.admin-layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--admin-gray-50);
+}
+
+/* Khu vực nội dung bên phải (Bao gồm Navbar và Main Content) */
+.admin-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Tránh tràn layout Flexbox */
+  transition: margin-left var(--transition-speed) ease;
+}
+
+/* ==========================================================================
+   Navbar (Thanh điều hướng rớt trên cùng)
+   ========================================================================== */
+
+.admin-navbar {
+  height: var(--navbar-height);
+  background-color: #fff;
+  border-bottom: 1px solid var(--admin-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-lg);
+  position: sticky;
+  top: 0;
+  z-index: 50; /* Đảm bảo Navbar nằm trên các thành phần khác (Ví dụ: Table) */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+/* Khu vực Search trên Navbar */
+.navbar-search {
+  display: flex;
+  align-items: center;
+  background: var(--admin-gray-100);
+  border-radius: var(--radius-full);
+  padding: var(--space-sm) var(--space-md);
+  width: 320px;
+  border: 1px solid transparent;
+  transition: background var(--transition-speed), border-color var(--transition-speed);
+}
+
+.navbar-search:focus-within {
+  background: #fff;
+  border-color: var(--admin-primary);
+  box-shadow: var(--shadow-glow);
+}
+
+.navbar-search input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 14px;
+  color: var(--admin-gray-900);
+  margin-left: 8px; /* Tách biệt với Icon kính lúp */
+}
+
+/* Các công cụ phía bên phải Navbar (Thông báo, Hồ sơ) */
+.navbar-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.tool-icon-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--admin-gray-500);
+  background: #fff;
+  transition: background var(--transition-speed), color var(--transition-speed);
+}
+
+.tool-icon-btn:hover {
+  background: var(--admin-gray-100);
+  color: var(--admin-gray-900);
+}
+
+/* Chấm đỏ thông báo */
+.tool-icon-btn .badge-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--admin-danger);
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+/* Avatar người dùng trên Navbar */
+.navbar-profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-full);
+  transition: background var(--transition-speed);
+}
+
+.navbar-profile:hover {
+  background: var(--admin-gray-100);
+}
+
+.profile-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--admin-primary-light);
+}
+
+.profile-info {
+  display: none; /* Mặc định ẩn trên màn cứng, sẽ hiện ở Responsive */
+}
+
+@media (min-width: 768px) {
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+  }
+  .profile-info .name {
+    font-weight: 600;
+    color: var(--admin-gray-900);
+    font-size: 13px;
+    line-height: 1.2;
+  }
+  .profile-info .role {
+    font-size: 11px;
+    color: var(--admin-gray-500);
+  }
+}
+
+/* ==========================================================================
+   Main Content Area
+   ========================================================================== */
+
+.admin-main-content {
+  flex: 1; /* Điền nốt không gian còn lại */
+  padding: var(--space-xl);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ==========================================================================
+   Responsive cho Layout
+   ========================================================================== */
+
+@media (max-width: 991px) {
+  .navbar-search {
+    width: 200px; /* Thu nhỏ thanh search trên tablet */
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-main-content {
+    padding: var(--space-md);
+  }
+  .navbar-search {
+    display: none; /* Ẩn search bar ở màn điện thoại */
+  }
+}

@@ -12,20 +12,20 @@
 
         <form @submit.prevent="handleLogin" class="auth-form">
           <div class="input-group">
-            <label>Email</label>
-            <div class="input-field">
-              <span class="icon">✉</span>
-              <input type="email" v-model="email" placeholder="Nhập email của bạn" required />
+            <label class="form-label fw-bold text-secondary small">Email</label>
+            <div class="input-field position-relative">
+              <i class="bi bi-envelope icon position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+              <input type="email" v-model="email" class="form-control ps-5 py-2 rounded-3 border-light-subtle" placeholder="Nhập email của bạn" required />
             </div>
           </div>
 
           <div class="input-group">
-            <label>Mật khẩu</label>
-            <div class="input-field">
-              <span class="icon">🔒</span>
-              <input :type="showPassword ? 'text' : 'password'" v-model="password" placeholder="••••••••" required />
-              <button type="button" @click="showPassword = !showPassword" class="toggle-password">
-                {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+            <label class="form-label fw-bold text-secondary small">Mật khẩu</label>
+            <div class="input-field position-relative">
+              <i class="bi bi-lock icon position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+              <input :type="showPassword ? 'text' : 'password'" v-model="password" class="form-control ps-5 py-2 rounded-3 border-light-subtle" placeholder="••••••••" required />
+              <button type="button" @click="showPassword = !showPassword" class="btn btn-link link-secondary position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0 shadow-none">
+                <i class="bi" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
               </button>
             </div>
           </div>
@@ -38,15 +38,15 @@
             <a href="#" @click.prevent="$router.push('/forgot-password')" class="link">Quên mật khẩu?</a>
           </div>
 
-          <button type="submit" class="btn-submit" :disabled="loading">
+          <button type="submit" class="btn btn-dark w-100 py-3 rounded-3 fw-bold shadow-sm" :disabled="loading">
             <span v-if="!loading">ĐĂNG NHẬP</span>
-            <div v-else class="loader"></div>
+            <div v-else class="spinner-border spinner-border-sm" role="status"></div>
           </button>
 
-          <div class="hr-text"><span>HOẶC</span></div>
+          <div class="hr-text py-3 text-secondary small fw-bold"><span>HOẶC</span></div>
 
-          <button type="button" class="btn-google" @click="handleGoogleLogin">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" />
+          <button type="button" class="btn btn-outline-secondary w-100 py-2 rounded-3 d-flex align-items-center justify-content-center gap-2" @click="handleGoogleLogin">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" style="width: 18px" />
             <span>Đăng nhập với Google</span>
           </button>
         </form>
@@ -113,20 +113,22 @@ export default {
 .bg-text-wrapper {
   position: absolute;
   width: 100%;
-  opacity: 0.07; 
+  opacity: 0.04; 
   user-select: none;
   z-index: 1;
+  top: 50%;
+  transform: translateY(-50%);
 }
 .bg-text {
-  font-size: 15rem;
+  font-size: 10rem;
   font-weight: 900;
   white-space: nowrap;
-  animation: scrollLeft 35s linear infinite;
+  animation: scrollLeft 60s linear infinite;
   color: #000;
-  letter-spacing: -5px;
+  letter-spacing: -2px;
 }
 .bg-text.reverse {
-  animation: scrollRight 35s linear infinite;
+  animation: scrollRight 60s linear infinite;
 }
 @keyframes scrollLeft { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scrollRight { from { transform: translateX(-50%); } to { transform: translateX(0); } }
@@ -136,16 +138,16 @@ export default {
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   padding: 20px;
 }
 .glass-box {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
   border: 1px solid rgba(0,0,0,0.05);
-  border-radius: 24px;
-  padding: 50px 40px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+  border-radius: 28px;
+  padding: 40px 35px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.12);
   text-align: center;
 }
 

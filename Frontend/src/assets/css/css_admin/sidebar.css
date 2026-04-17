@@ -1,0 +1,167 @@
+/* ==========================================================================
+   Sidebar (Thanh công cụ bên trái)
+   ========================================================================== */
+
+.admin-sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--admin-gray-900); /* Màu nền tối siêu ngầu */
+  color: var(--admin-gray-400);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition-speed) ease, transform 0.3s ease;
+  overflow-y: auto;
+  box-shadow: 4px 0 15px rgba(0,0,0,0.05);
+}
+
+/* Khu vực Logo */
+.sidebar-logo {
+  height: var(--navbar-height);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-lg);
+  background-color: #0b1221; /* Đậm hơn 1 chút tạo chiều sâu */
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-logo span {
+  color: var(--admin-primary); /* Điểm nhấn thương hiệu */
+}
+
+/* Khu vực Navigation Links */
+.sidebar-nav {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  flex: 1;
+}
+
+/* Tiêu đề phân cụm Menu */
+.sidebar-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--admin-gray-500);
+  margin: var(--space-md) 0 var(--space-xs) 12px;
+  font-weight: 700;
+}
+
+/* Style cho các mục Menu */
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  color: var(--admin-gray-400);
+  font-weight: 500;
+  transition: background var(--transition-speed), color var(--transition-speed);
+  cursor: pointer;
+  position: relative;
+}
+
+/* Icon trong Menu */
+.sidebar-item svg, .sidebar-item i {
+  font-size: 18px;
+  width: 20px;
+  display: flex;
+  justify-content: center;
+  transition: transform var(--transition-speed);
+}
+
+/* Hiệu ứng Hover */
+.sidebar-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.sidebar-item:hover svg, .sidebar-item:hover i {
+  color: var(--admin-primary);
+  transform: scale(1.1);
+}
+
+/* Trạng thái đường link đang chọn (Active) */
+.sidebar-item.active {
+  background: var(--admin-primary); /* Nền xanh Primary nổi bật */
+  color: #fff;
+  box-shadow: var(--shadow-glow);
+}
+
+.sidebar-item.active svg, .sidebar-item.active i {
+  color: #fff;
+  transform: none; /* Bỏ scale */
+}
+
+/* Menu Con (Submenu) - dành cho phân cấp phức tạp */
+.sidebar-submenu {
+  display: none; /* Ẩn mặc định, dùng JS hoặc VUE để toggle .show */
+  flex-direction: column;
+  padding-left: 36px;
+  margin-top: 4px;
+  gap: 4px;
+}
+
+.sidebar-submenu.show {
+  display: flex;
+}
+
+.sidebar-submenu-item {
+  padding: 8px 12px;
+  color: var(--admin-gray-500);
+  font-size: 13px;
+  border-radius: var(--radius-md);
+  transition: color 0.2s, background 0.2s;
+}
+
+.sidebar-submenu-item:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ==========================================================================
+   Responsive & Collapse (Thu gọn Sidebar)
+   ========================================================================== */
+
+/* Trạng thái thu gọn (Collapsed Sidebar) dùng class .collapsed trên body hoặc wrapper */
+.admin-layout-wrapper.collapsed .admin-sidebar {
+  width: var(--sidebar-collapsed-width);
+}
+
+.admin-layout-wrapper.collapsed .sidebar-title,
+.admin-layout-wrapper.collapsed .sidebar-item span {
+  display: none; /* Ẩn chữ đi, chỉ chừa Icon */
+}
+
+.admin-layout-wrapper.collapsed .admin-main-wrapper {
+  margin-left: var(--sidebar-collapsed-width); /* Căn chỉnh nội dung thụt vào ít thôi */
+}
+
+/* Căn nội dung bình thường */
+.admin-main-wrapper {
+  margin-left: var(--sidebar-width);
+}
+
+/* Mobile Responsive */
+@media (max-width: 991px) {
+  /* Biến thành Sidebar dạng Drawer trượt vào từ left */
+  .admin-sidebar {
+    transform: translateX(-100%); /* Ẩn ngoài màn hình */
+  }
+  
+  .admin-layout-wrapper.mobile-open .admin-sidebar {
+    transform: translateX(0); /* Trượt ra khi bấm Hamburger button */
+  }
+
+  .admin-main-wrapper {
+    margin-left: 0 !important; /* Mobile luôn fullscreen Main Content */
+  }
+}

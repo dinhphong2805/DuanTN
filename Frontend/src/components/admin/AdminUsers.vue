@@ -1,82 +1,82 @@
 <template>
   <div class="users-page">
-    <header class="page-head">
+    <header class="page-head d-flex justify-content-between align-items-center mb-4">
       <div class="page-head__text">
-        <h1>Quản lý người dùng</h1>
-        <p class="page-sub">Xem, lọc và chỉnh sửa hồ sơ cùng vai trò tài khoản</p>
+        <h1 class="h3 fw-bold mb-1">Quản lý người dùng</h1>
+        <p class="text-secondary small mb-0">Xem, lọc và chỉnh sửa hồ sơ cùng vai trò tài khoản</p>
       </div>
-      <div class="page-head__actions">
-        <button type="button" class="btn-ghost" :disabled="loading" @click="load">
-          <span class="btn-ico" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-            </svg>
-          </span>
+      <div class="page-head__actions d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2 px-3" :disabled="loading" @click="load">
+          <i class="bi bi-arrow-clockwise" :class="{ 'spinner-border spinner-border-sm border-0': isRefreshing }"></i>
           Làm mới
         </button>
         <button
           type="button"
-          class="btn-primary"
+          class="btn btn-primary btn-sm d-flex align-items-center gap-2 px-4 shadow-sm"
           :disabled="loading || filteredSorted.length === 0"
           @click="exportCsv"
         >
-          Xuất CSV
+          <i class="bi bi-download"></i>
+          Xuất dữ liệu
         </button>
       </div>
     </header>
 
-    <section v-if="!loading" class="kpi-grid" aria-label="Tổng quan người dùng">
-      <article class="kpi-card">
+    <section v-if="!loading || isRefreshing" class="kpi-grid mb-4" aria-label="Tổng quan người dùng">
+      <article class="kpi-card shadow-sm border-0 h-100">
         <span class="kpi-label">Tổng tài khoản</span>
         <strong class="kpi-value">{{ stats.total }}</strong>
       </article>
-      <article class="kpi-card kpi-card--blue">
-        <span class="kpi-label">Quản trị</span>
+      <article class="kpi-card kpi-card--blue shadow-sm border-0 h-100">
+        <span class="kpi-label">Quản trị viên</span>
         <strong class="kpi-value">{{ stats.admin }}</strong>
       </article>
-      <article class="kpi-card kpi-card--green">
+      <article class="kpi-card kpi-card--green shadow-sm border-0 h-100">
         <span class="kpi-label">Khách hàng</span>
         <strong class="kpi-value">{{ stats.customer }}</strong>
       </article>
     </section>
 
-    <section v-if="!loading && users.length" class="toolbar">
-      <div class="toolbar__search">
-        <span class="search-ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="11" cy="11" r="7" />
-            <path d="M21 21l-4.35-4.35" stroke-linecap="round" />
-          </svg>
-        </span>
-        <input
-          v-model="searchQuery"
-          type="search"
-          class="search-input"
-          placeholder="Tìm theo ID, email, họ tên, SĐT…"
-          autocomplete="off"
-        />
-      </div>
-      <div class="toolbar__filters" role="group" aria-label="Lọc vai trò">
-        <button
-          v-for="f in roleFilters"
-          :key="f.value"
-          type="button"
-          class="chip"
-          :class="{ active: roleFilter === f.value }"
-          @click="roleFilter = f.value; page = 1"
-        >
-          {{ f.label }}
-          <span v-if="f.value !== 'all'" class="chip-count">{{ countByRole(f.value) }}</span>
-        </button>
-      </div>
-      <div class="toolbar__sort">
-        <label class="sort-label" for="user-sort">Sắp xếp</label>
-        <select id="user-sort" v-model="sortKey" class="sort-select">
-          <option value="id_asc">ID tăng dần</option>
-          <option value="id_desc">ID giảm dần</option>
-          <option value="name_asc">Tên A → Z</option>
-          <option value="email_asc">Email A → Z</option>
-        </select>
+    <section v-if="users.length" class="toolbar card shadow-sm border-0 p-3 mb-4 d-block">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-5">
+          <div class="position-relative">
+            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+            <input
+              v-model="searchQuery"
+              type="search"
+              class="form-control border-0 bg-light ps-5 py-2"
+              placeholder="Tìm ID, email, họ tên..."
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex flex-wrap gap-2" role="group">
+            <button
+              v-for="f in roleFilters"
+              :key="f.value"
+              type="button"
+              class="btn btn-sm px-3 rounded-pill fw-bold"
+              :class="roleFilter === f.value ? 'btn-dark shadow-sm' : 'btn-light text-secondary border-0'"
+              @click="roleFilter = f.value; page = 1"
+            >
+              {{ f.label }}
+              <span v-if="f.value !== 'all'" class="badge bg-secondary ms-1">{{ countByRole(f.value) }}</span>
+            </button>
+          </div>
+        </div>
+        <div class="col-md-3 text-md-end">
+          <div class="d-inline-flex align-items-center gap-2">
+            <span class="small text-secondary fw-bold text-nowrap">Sắp xếp:</span>
+            <select v-model="sortKey" class="form-select form-select-sm border-0 bg-light w-auto fw-medium">
+              <option value="id_asc">ID tăng dần</option>
+              <option value="id_desc">ID giảm dần</option>
+              <option value="name_asc">Tên A → Z</option>
+              <option value="email_asc">Email A → Z</option>
+            </select>
+          </div>
+        </div>
       </div>
     </section>
 

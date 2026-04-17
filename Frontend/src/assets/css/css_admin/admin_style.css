@@ -1,0 +1,19 @@
+/* =============================================================
+   KESN ADMIN — Master Import File
+   Thu tu load rat quan trong - khong duoc doi
+   ============================================================= */
+
+/* 1. Bien CSS (Custom Properties) */
+@import url('./variables.css');
+
+/* 2. Reset + Font + Utilities co ban */
+@import url('./base.css');
+
+/* 3. Thanh phan giao dien (Buttons, Badges, Modal, Toast...) */
+@import url('./ui.css');
+
+/* 4. Hien thi du lieu (Table, Toolbar, Pager, Skeleton...) */
+@import url('./data.css');
+
+/* 5. Cap do trang (Page header, KPI cards, Section cards...) */
+@import url('./pages.css');

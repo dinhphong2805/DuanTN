@@ -1,0 +1,49 @@
+/* =============================================================
+   KESN ADMIN — Base (Font, Reset, Utilities co ban)
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ---- Reset ---- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, textarea, select { font-family: inherit; outline: none; }
+img { display: block; max-width: 100%; }
+
+html {
+  font-size: 14px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--a-n900);
+  background-color: var(--a-n50);
+}
+
+/* ---- Scrollbar tuy chinh ---- */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--a-n300); border-radius: var(--r-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--a-n400); }
+
+/* ---- Typography utilities ---- */
+.mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+.strong { font-weight: 700; color: var(--a-n900); }
+.text-muted { color: var(--a-n500); }
+.text-danger { color: #be123c !important; }
+.text-success { color: var(--a-success) !important; }
+
+/* ---- Visually hidden (a11y) ---- */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}

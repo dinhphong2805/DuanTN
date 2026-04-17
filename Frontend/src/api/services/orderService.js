@@ -30,3 +30,11 @@ export async function checkOrderStatus(id) {
   const { data } = await client.get(`/orders/${id}/status`)
   return data
 }
+
+export async function cancelOrder(orderId, cancelReason, userId) {
+  const uid = Number(userId)
+  const { data } = await client.post(`/orders/detail/${orderId}/cancel`, { cancelReason }, {
+    params: { userId: uid },
+  })
+  return data
+}

@@ -46,6 +46,10 @@ public class Order {
     @Column(name = "discount_amount", precision = 19, scale = 0)
     private BigDecimal discountAmount = BigDecimal.ZERO;
 
+    @org.hibernate.annotations.Nationalized
+    @Column(name = "cancellation_reason", columnDefinition = "nvarchar(max)")
+    private String cancelReason;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getUserId() { return userId; }
@@ -70,4 +74,6 @@ public class Order {
     public void setVoucherCode(String voucherCode) { this.voucherCode = voucherCode; }
     public BigDecimal getDiscountAmount() { return discountAmount; }
     public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
+    public String getCancelReason() { return cancelReason; }
+    public void setCancelReason(String cancelReason) { this.cancelReason = cancelReason; }
 }

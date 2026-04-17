@@ -102,6 +102,7 @@ function statusText(s) {
     paid: 'Đã thanh toán',
     shipping: 'Đang giao',
     delivered: 'Đã giao',
+    cancelled: 'Đã hủy',
   }
   return map[s] || s
 }
@@ -313,6 +314,10 @@ onMounted(async () => {
   background: linear-gradient(180deg, #34d399, #10b981);
 }
 
+.order-card-accent.cancelled {
+  background: linear-gradient(180deg, #fb7185, #e11d48);
+}
+
 .order-card-body {
   flex: 1;
   min-width: 0;
@@ -379,6 +384,12 @@ onMounted(async () => {
   background: #ecfdf5;
   color: #047857;
   border: 1px solid #a7f3d0;
+}
+
+.order-status.cancelled {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #ffe4e6;
 }
 
 .order-date {

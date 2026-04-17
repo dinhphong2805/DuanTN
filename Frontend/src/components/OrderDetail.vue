@@ -37,9 +37,12 @@
             </div>
             <span class="status-pill" :class="order.status">{{ statusText(order.status) }}</span>
           </div>
+          <div v-if="order.status === 'cancelled' && order.cancelReason" class="cancel-banner">
+            <strong>Đơn hàng đã hủy:</strong> {{ order.cancelReason }}
+          </div>
         </header>
 
-        <section class="panel panel--timeline" aria-label="Tiến trình đơn hàng">
+        <section v-if="order.status !== 'cancelled'" class="panel panel--timeline" aria-label="Tiến trình đơn hàng">
           <h2 class="panel-title">Tiến trình</h2>
           <div class="timeline">
             <div class="timeline-rail" aria-hidden="true" />
@@ -109,10 +112,76 @@
         </div>
 
         <footer class="action-bar">
+          <button v-if="order.status !== 'delivered' && order.status !== 'shipping' && order.status !== 'cancelled'" type="button" class="btn btn--danger" @click="openCancelModal">Hủy đơn hàng</button>
           <router-link to="/profile?tab=orders" class="btn btn--ghost">Danh sách đơn</router-link>
           <router-link to="/product" class="btn btn--primary">Tiếp tục mua sắm</router-link>
         </footer>
       </template>
+
+      <!-- Modal Hủy Đơn Hàng -->
+      <Teleport to="body">
+        <div v-if="showCancelModal" class="modal-overlay" @click.self="showCancelModal = false">
+          <div class="modal modal--cancel">
+            <header class="modal-head">
+              <h3>Xác nhận hủy đơn hàng</h3>
+              <p class="modal-sub">Mã đơn: #{{ order?.id }}</p>
+            </header>
+            
+            <div class="modal-body">
+              <div class="cancel-summary">
+                <h4>Thông tin đơn</h4>
+                <ul class="summary-items">
+                  <li v-for="(item, i) in (order?.items || [])" :key="i">
+                    - {{ item.productName || item.name }}: <span class="summary-qty">x{{ item.quantity || item.qty }}</span>
+                  </li>
+                </ul>
+                <p class="summary-total"><strong>Tổng tiền:</strong> {{ formatPrice(order?.total) }} đ</p>
+              </div>
+
+              <div class="cancel-form">
+                <label for="cancel-reason">Lý do hủy đơn <span class="req">*</span></label>
+                <textarea 
+                  id="cancel-reason" 
+                  v-model="cancelReasonInput" 
+                  rows="3" 
+                  placeholder="Vui lòng nhập lý do bạn muốn hủy đơn hàng này..." 
+                  class="reason-input"
+                ></textarea>
+                <p v-if="modalError && !showConfirmModal" class="req" style="margin: 4px 0 0; font-size: 13px;">{{ modalError }}</p>
+              </div>
+            </div>
+
+            <footer class="modal-foot">
+              <button type="button" class="btn btn--ghost" @click="showCancelModal = false">Đóng</button>
+              <button type="button" class="btn btn--danger" @click="confirmCancel">Xác nhận hủy</button>
+            </footer>
+          </div>
+        </div>
+      </Teleport>
+
+      <!-- Modal Xác Nhận Cuối Cùng -->
+      <Teleport to="body">
+        <div v-if="showConfirmModal" class="modal-overlay" @click.self="showConfirmModal = false">
+          <div class="modal modal--small">
+            <header class="modal-head">
+              <h3>Xác nhận hủy</h3>
+            </header>
+            <div class="modal-body">
+              <p style="margin:0; font-size: 15px; color: #334155;">Bạn có chắc chắn muốn hủy đơn hàng này không? Quá trình này không thể hoàn tác.</p>
+              <p v-if="modalError && showConfirmModal" class="req" style="margin: 10px 0 0; font-size: 13px;">{{ modalError }}</p>
+            </div>
+            <footer class="modal-foot">
+              <button type="button" class="btn btn--ghost" :disabled="isCancelling" @click="showConfirmModal = false">Quay lại</button>
+              <button type="button" class="btn btn--danger" :disabled="isCancelling" @click="submitCancel">{{ isCancelling ? 'Đang hủy...' : 'Đồng ý hủy' }}</button>
+            </footer>
+          </div>
+        </div>
+      </Teleport>
+
+      <!-- Toast Popup -->
+      <div v-if="toastMsg" class="toast-popup">
+        {{ toastMsg }}
+      </div>
     </div>
   </div>
 </template>
@@ -121,13 +190,29 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { resolveSessionUserId } from '../authStore'
-import { getOrderDetail } from '../api/services/orderService'
+import { getOrderDetail, cancelOrder } from '../api/services/orderService'
 
 const route = useRoute()
 
 const order = ref(null)
 const loading = ref(true)
 const error = ref('')
+
+const showCancelModal = ref(false)
+const cancelReasonInput = ref('')
+const showConfirmModal = ref(false)
+const modalError = ref('')
+const isCancelling = ref(false)
+const toastMsg = ref('')
+
+let toastTimer = null
+function showToast(msg) {
+  if (toastTimer) clearTimeout(toastTimer)
+  toastMsg.value = msg
+  toastTimer = setTimeout(() => {
+    toastMsg.value = ''
+  }, 3000)
+}
 
 const orderIdDisplay = computed(() => route.params.id || '—')
 
@@ -161,6 +246,7 @@ function statusText(s) {
     paid: 'Đã thanh toán',
     shipping: 'Đang giao',
     delivered: 'Đã giao',
+    cancelled: 'Đã hủy'
   }
   return map[s] || s || '—'
 }
@@ -219,6 +305,41 @@ async function load() {
     loading.value = false
   }
 }
+
+function openCancelModal() {
+  cancelReasonInput.value = ''
+  modalError.value = ''
+  showCancelModal.value = true
+}
+
+function confirmCancel() {
+  modalError.value = ''
+  if (!cancelReasonInput.value.trim()) {
+    modalError.value = 'Vui lòng nhập lý do hủy đơn.';
+    return;
+  }
+  showConfirmModal.value = true
+}
+
+async function submitCancel() {
+  modalError.value = ''
+  isCancelling.value = true
+  const id = Number(route.params.id)
+  const userId = resolveSessionUserId()
+  try {
+    await cancelOrder(id, cancelReasonInput.value.trim(), userId)
+    showToast('Đã hủy đơn hàng thành công.')
+    showConfirmModal.value = false
+    showCancelModal.value = false
+    await load() // reload data
+  } catch (e) {
+    const msg = e.response?.data?.message || 'Không thể hủy đơn hàng lúc này.'
+    modalError.value = msg
+  } finally {
+    isCancelling.value = false
+  }
+}
+
 
 watch(
   () => route.params.id,
@@ -427,6 +548,22 @@ watch(
   background: #ecfdf5;
   color: #047857;
   border: 1px solid #a7f3d0;
+}
+
+.status-pill.cancelled {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #ffe4e6;
+}
+
+.cancel-banner {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #fff1f2;
+  border: 1px solid #ffe4e6;
+  border-radius: 12px;
+  color: #be123c;
+  font-size: 14px;
 }
 
 .panel {
@@ -716,14 +853,214 @@ watch(
   border-color: #020617;
 }
 
+.btn--danger {
+  background: #fff;
+  color: #be123c;
+  border: 1px solid #fda4af;
+  box-shadow: 0 1px 2px rgba(225, 29, 72, 0.05);
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #fff1f2;
+  border-color: #fb7185;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn:focus-visible {
   outline: 2px solid #0f172a;
   outline-offset: 2px;
 }
 
+/* Modal UI */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal--small {
+  max-width: 380px;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-head {
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.modal-head h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.modal-sub {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.modal-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+}
+
+.cancel-summary {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+}
+
+.cancel-summary h4 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.summary-items {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #334155;
+}
+
+.summary-items li {
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.summary-qty {
+  color: #94a3b8;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-total {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px dashed #cbd5e1;
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.cancel-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cancel-form label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.req {
+  color: #e11d48;
+}
+
+.reason-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  font-family: inherit;
+  font-size: 14px;
+  color: #0f172a;
+  resize: vertical;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.reason-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.modal-foot {
+  padding: 20px 28px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.toast-popup {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0f172a;
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
+  z-index: 10000;
+  animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 640px) {
   .table-head {
     display: none;
+  }
+  
+  .toast-popup {
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    text-align: center;
   }
 
   .table-row {

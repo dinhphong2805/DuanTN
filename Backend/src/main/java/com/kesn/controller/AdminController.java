@@ -424,6 +424,7 @@ public class AdminController {
     @Transactional
     public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String status = body.get("status");
+        String cancelReason = body.get("cancelReason");
         if (status == null || status.isBlank()) return ResponseEntity.badRequest().build();
         Order o = orderRepository.findById(id).orElse(null);
         if (o == null) return ResponseEntity.notFound().build();
@@ -441,6 +442,10 @@ public class AdminController {
             if (stockError != null) {
                 return ResponseEntity.badRequest().body(Map.of("message", stockError));
             }
+        }
+
+        if ("cancelled".equals(nextStatus)) {
+            o.setCancelReason(cancelReason);
         }
 
         o.setStatus(nextStatus);

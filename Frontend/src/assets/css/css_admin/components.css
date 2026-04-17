@@ -1,0 +1,207 @@
+/* ==========================================================================
+   Thành phần Giao diện (Cards, Tables, Buttons, Forms)
+   ========================================================================== */
+
+/* ======== CARD ======== */
+/* Background khung chứa nội dung, tạo mảng nổi khối */
+.admin-card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(15, 23, 42, 0.04);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  transition: box-shadow var(--transition-speed);
+}
+
+.admin-card:hover {
+  box-shadow: var(--shadow-lg); /* Nổi bật hơn khi lia chuột */
+}
+
+.admin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--admin-gray-100);
+  padding-bottom: var(--space-sm);
+}
+
+.admin-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--admin-gray-900);
+}
+
+/* ======== TABLE ======== */
+/* Bảng dữ liệu chuẩn thẩm mỹ Modern */
+.admin-table-wrapper {
+  overflow-x: auto; /* Hỗ trợ scroll ngang trên mobile */
+  border-radius: var(--radius-md);
+  /* Tránh table chọc ra ngoài góc bo tròn */
+  border: 1px solid var(--admin-gray-200);   
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+/* Phần Head */
+.admin-table thead th {
+  background-color: var(--admin-gray-50);
+  color: var(--admin-gray-500);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  padding: var(--space-md);
+  border-bottom: 2px solid var(--admin-gray-200);
+}
+
+/* Phần Body (Hàng Xen Kẽ / Zebra) */
+.admin-table tbody td {
+  padding: 14px var(--space-md);
+  border-bottom: 1px solid var(--admin-gray-100);
+  color: var(--admin-gray-800);
+  vertical-align: middle;
+}
+
+/* Hiệu ứng trỏ chuột vào hàng */
+.admin-table tbody tr {
+  transition: background var(--transition-speed);
+}
+.admin-table tbody tr:hover {
+  background-color: var(--admin-primary-light);
+}
+
+/* Status Badges (Nhãn trạng thái) */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.success {
+  background-color: var(--admin-success-bg);
+  color: var(--admin-success);
+}
+
+.status-badge.warning {
+  background-color: var(--admin-warning-bg);
+  color: var(--admin-warning);
+}
+
+.status-badge.danger {
+  background-color: var(--admin-danger-bg);
+  color: var(--admin-danger);
+}
+
+.status-badge.info {
+  background-color: var(--admin-info-bg);
+  color: var(--admin-info);
+}
+
+
+/* ======== BUTTONS ======== */
+.btn-admin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all var(--transition-speed);
+}
+
+.btn-admin:active {
+  transform: translateY(2px); /* Click lún mượt mà */
+}
+
+/* Button Điền đầy (Solid) */
+.btn-admin-primary {
+  background-color: var(--admin-primary);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+}
+.btn-admin-primary:hover {
+  background-color: var(--admin-primary-hover);
+  box-shadow: var(--shadow-glow);
+}
+
+/* Button Viền Trống (Outline) */
+.btn-admin-outline {
+  background-color: transparent;
+  color: var(--admin-gray-700);
+  border: 1px solid var(--admin-gray-300);
+}
+.btn-admin-outline:hover {
+  color: var(--admin-primary);
+  border-color: var(--admin-primary);
+  background-color: var(--admin-primary-light);
+}
+
+/* Button Đỏ Xóa (Danger Solid) */
+.btn-admin-danger {
+  background-color: var(--admin-danger);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
+}
+.btn-admin-danger:hover {
+  background-color: #dc2626; /* Darker red */
+}
+
+
+/* ======== FORMS & INPUTS ======== */
+.admin-form-group {
+  margin-bottom: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--admin-gray-700);
+}
+
+.admin-input, .admin-select, .admin-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 14px;
+  border: 1px solid var(--admin-gray-300);
+  border-radius: var(--radius-sm);
+  background-color: var(--admin-gray-50);
+  color: var(--admin-gray-900);
+  transition: box-shadow var(--transition-speed), border-color var(--transition-speed), background-color var(--transition-speed);
+}
+
+.admin-input:focus, .admin-select:focus, .admin-textarea:focus {
+  background-color: #fff;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px var(--admin-primary-light); /* Halo effect */
+}
+
+/* Checkbox / Radio sang chảnh */
+.admin-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.admin-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--admin-primary); /* Đổi màu checkbox system */
+}

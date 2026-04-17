@@ -62,8 +62,8 @@ export async function getOrder(id) {
   return data
 }
 
-export async function updateOrderStatus(id, status) {
-  const { data } = await client.patch(`admin/orders/${id}/status`, { status })
+export async function updateOrderStatus(id, status, cancelReason = '') {
+  const { data } = await client.patch(`admin/orders/${id}/status`, { status, cancelReason })
   return data
 }
 

@@ -1,112 +1,136 @@
 <template>
   <div class="admin-products">
-    <div class="page-header">
-      <div class="header-left">
-        <h1>Quản lý sản phẩm</h1>
-        <p class="subtitle">Hiển thị, bộ lọc và chỉnh sửa danh mục hàng hóa</p>
+    <header class="page-head d-flex justify-content-between align-items-center mb-4">
+      <div class="page-head__text">
+        <h1 class="h3 fw-bold mb-1">Quản lý sản phẩm</h1>
+        <p class="text-secondary small mb-0">Hiển thị, bộ lọc và chỉnh sửa danh mục hàng hóa</p>
       </div>
-      <button class="btn-primary-add" @click="openForm()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        Thêm sản phẩm
-      </button>
-    </div>
+      <div class="page-head__actions d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2 px-3" :disabled="loading" @click="load(true)">
+          <i class="bi bi-arrow-clockwise" :class="{ 'spinner-border spinner-border-sm border-0': isRefreshing }"></i>
+          Làm mới
+        </button>
+        <button class="btn btn-primary btn-sm d-flex align-items-center gap-2 px-4 shadow-sm" @click="openForm()">
+          <i class="bi bi-plus-lg"></i> Thêm sản phẩm
+        </button>
+      </div>
+    </header>
 
-    <div class="filter-card">
-      <div class="filter-grid">
-        <div class="filter-item search-box">
-          <svg class="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input v-model="filters.keyword" placeholder="Tìm theo tên sản phẩm..." @keyup.enter="applyFilters" />
+    <div class="filter-card card shadow-sm border-0 mb-4 p-3">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="position-relative">
+            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+            <input v-model="filters.keyword" class="form-control ps-5" placeholder="Tìm theo tên..." @keyup.enter="applyFilters" />
+          </div>
         </div>
-        <div class="filter-item">
-          <select v-model="filters.brand" @change="applyFilters" class="form-select">
-            <option value="">Tất cả thương hiệu</option>
+        <div class="col-md-2">
+          <select v-model="filters.brand" @change="applyFilters" class="form-select bg-light border-0">
+            <option value="">Thương hiệu</option>
             <option v-for="b in brandList" :key="b" :value="b">{{ b }}</option>
           </select>
         </div>
-        <div class="filter-item">
-          <select v-model="filters.category" @change="applyFilters" class="form-select">
-            <option value="">Tất cả danh mục</option>
+        <div class="col-md-2">
+          <select v-model="filters.category" @change="applyFilters" class="form-select bg-light border-0">
+            <option value="">Danh mục</option>
             <option v-for="c in categoryList" :key="c.id" :value="c.name">{{ c.name }}</option>
           </select>
         </div>
-        <div class="filter-item price-range">
-          <input v-model.number="filters.minPrice" type="number" placeholder="Giá từ" @keyup.enter="applyFilters" />
-          <span>-</span>
-          <input v-model.number="filters.maxPrice" type="number" placeholder="Đến" @keyup.enter="applyFilters" />
+        <div class="col-md-3">
+          <div class="input-group input-group-sm">
+            <input v-model.number="filters.minPrice" type="number" class="form-control border-0 bg-light" placeholder="Min" @keyup.enter="applyFilters" />
+            <span class="input-group-text bg-light border-0">-</span>
+            <input v-model.number="filters.maxPrice" type="number" class="form-control border-0 bg-light" placeholder="Max" @keyup.enter="applyFilters" />
+          </div>
         </div>
-      </div>
-      <div class="filter-actions">
-        <button class="btn-clear" @click="clearFilters">Xóa bộ lọc</button>
-        <button class="btn-apply" @click="applyFilters">Lọc dữ liệu</button>
+        <div class="col-md-1 d-flex gap-1 justify-content-end">
+          <button class="btn btn-dark btn-sm rounded-circle px-2 py-2 shadow-sm" @click="applyFilters" title="Lọc">
+            <i class="bi bi-funnel-fill"></i>
+          </button>
+          <button class="btn btn-outline-secondary btn-sm rounded-circle px-2 py-2" @click="clearFilters" title="Xóa lọc">
+            <i class="bi bi-trash-fill"></i>
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="table-card">
-      <div v-if="loading" class="loader-container">
+    <div class="table-card" :class="{ 'is-refreshing': isRefreshing }">
+      <div v-if="loading && !isRefreshing" class="loader-container">
         <div class="spinner"></div>
         <p>Đang tải dữ liệu...</p>
       </div>
 
       <div v-else-if="products.length === 0" class="empty-state">
-        <div class="empty-icon">📂</div>
+        <div class="empty-icon text-muted">📂</div>
         <h3>Không tìm thấy sản phẩm</h3>
         <p>Hãy thử thay đổi điều kiện lọc hoặc thêm sản phẩm mới.</p>
       </div>
 
-      <table v-else class="modern-table">
-        <thead>
-          <tr>
-            <th width="80">ID</th>
-            <th width="80">Ảnh</th>
-            <th>Tên sản phẩm</th>
-            <th>Phân loại</th>
-            <th>Tồn kho</th>
-            <th>Giá bán (VNĐ)</th>
-            <th class="text-right">Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="p in products" :key="p.id">
-            <td class="id-col">#{{ p.id }}</td>
-            <td>
-              <div class="img-thumb">
-                <img v-if="getFirstImage(p.imageUrl)" :src="toDisplayUrl(getFirstImage(p.imageUrl))" />
-                <span v-else class="no-img">N/A</span>
-              </div>
-            </td>
-            <td class="name-col">
-              <strong>{{ p.name }}</strong>
-            </td>
-            <td>
-              <div class="badges">
-                <span class="badge brand" v-if="p.brand">{{ p.brand }}</span>
-                <span class="badge category" v-if="p.category">{{ p.category }}</span>
-              </div>
-            </td>
-            <td>{{ p.stockQty ?? 0 }}</td>
-            <td class="price-col">{{ formatPrice(p.price) }} ₫</td>
-            <td class="action-col">
-              <button class="action-btn edit" @click="openForm(p)">Sửa</button>
-              <button class="action-btn delete" @click="confirmDelete(p)">Xóa</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div v-else class="table-responsive">
+        <table class="modern-table mb-0">
+          <thead>
+            <tr>
+              <th width="80">ID</th>
+              <th width="80">Ảnh</th>
+              <th>Tên sản phẩm</th>
+              <th>Phân loại</th>
+              <th>Tồn kho</th>
+              <th>Giá bán (VNĐ)</th>
+              <th class="text-end">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="p in products" :key="p.id">
+              <td class="id-col">#{{ p.id }}</td>
+              <td>
+                <div class="img-thumb">
+                  <img v-if="getFirstImage(p.imageUrl)" :src="toDisplayUrl(getFirstImage(p.imageUrl))" />
+                  <span v-else class="no-img">N/A</span>
+                </div>
+              </td>
+              <td class="name-col">
+                <strong>{{ p.name }}</strong>
+              </td>
+              <td>
+                <div class="badges">
+                  <span class="badge brand" v-if="p.brand">{{ p.brand }}</span>
+                  <span class="badge category" v-if="p.category">{{ p.category }}</span>
+                </div>
+              </td>
+              <td>{{ p.stockQty ?? 0 }}</td>
+              <td class="price-col text-primary fw-bold">{{ formatPrice(p.price) }} ₫</td>
+              <td class="action-col text-end">
+                <button class="action-btn edit" @click="openForm(p)">
+                  <i class="bi bi-pencil-square me-1"></i> Sửa
+                </button>
+                <button class="action-btn delete" @click="confirmDelete(p)">
+                  <i class="bi bi-trash me-1"></i> Xóa
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-      <div v-if="totalPages > 1" class="pagination">
-        <span class="page-info">Trang {{ filters.page + 1 }} / {{ totalPages }} (Tổng {{ totalElements }})</span>
-        <div class="page-controls">
-          <button :disabled="filters.page === 0" @click="changePage(filters.page - 1)">&larr; Trước</button>
+      <div v-if="totalPages > 1" class="pagination-footer px-4 py-3 d-flex align-items-center justify-content-between border-top">
+        <span class="page-info text-secondary">Trang {{ filters.page + 1 }} / {{ totalPages }} (Tổng {{ totalElements }})</span>
+        <div class="page-controls d-flex gap-2">
+          <button class="btn btn-outline-secondary btn-sm" :disabled="filters.page === 0" @click="changePage(filters.page - 1)">
+            <i class="bi bi-chevron-left"></i>
+          </button>
           
           <button 
             v-for="p in pageNumbers" 
             :key="p" 
-            :class="{ active: filters.page === p }"
+            class="btn btn-sm"
+            :class="filters.page === p ? 'btn-dark' : 'btn-outline-secondary'"
             @click="changePage(p)">
             {{ p + 1 }}
           </button>
           
-          <button :disabled="filters.page >= totalPages - 1" @click="changePage(filters.page + 1)">Sau &rarr;</button>
+          <button class="btn btn-outline-secondary btn-sm" :disabled="filters.page >= totalPages - 1" @click="changePage(filters.page + 1)">
+            <i class="bi bi-chevron-right"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -194,6 +218,7 @@ import { API_BASE_URL } from '../../api/config'
 
 const products = ref([])
 const loading = ref(true)
+const isRefreshing = ref(false)
 const showForm = ref(false)
 const editingId = ref(null)
 const saving = ref(false)
@@ -284,8 +309,10 @@ async function loadOptions() {
   }
 }
 
-async function load() {
-  loading.value = true
+async function load(refresh = false) {
+  if (refresh) isRefreshing.value = true
+  else loading.value = true
+  
   try {
     const res = await getProducts(filters)
     if (res && res.content !== undefined) {
@@ -300,23 +327,24 @@ async function load() {
     products.value = []
   } finally {
     loading.value = false
+    isRefreshing.value = false
   }
 }
 
 function applyFilters() {
   filters.page = 0; 
-  load();
+  load(true);
 }
 
 function clearFilters() {
   filters.keyword = ''; filters.brand = ''; filters.category = ''; 
   filters.minPrice = null; filters.maxPrice = null; filters.page = 0;
-  load();
+  load(true);
 }
 
 function changePage(p) {
   filters.page = p;
-  load();
+  load(true);
 }
 
 // ĐÃ SỬA: Hàm bọc giáp chống lỗi nhận Object thay vì chuỗi URL khi upload
@@ -388,135 +416,283 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* ============================================================
+   AdminProducts — Scoped styles
+   ============================================================ */
 
-.admin-products {
-  font-family: 'Inter', sans-serif;
-  padding: 32px;
-  background-color: #f4f4f6;
-  min-height: 100vh;
-  color: #111827;
-}
+.admin-products { max-width: 1400px; margin: 0 auto; }
 
-/* --- HEADER --- */
+/* Page Header */
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  margin-bottom: 24px; padding-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
 }
-.header-left h1 { font-size: 28px; font-weight: 800; margin: 0; letter-spacing: -0.5px; }
-.subtitle { color: #6b7280; font-size: 15px; margin: 4px 0 0; }
+.header-left h1 {
+  margin: 0; font-size: 1.6rem; font-weight: 800;
+  color: #0f172a; letter-spacing: -.03em;
+}
+.subtitle { margin: 6px 0 0; font-size: .9rem; color: #64748b; }
 
 .btn-primary-add {
-  display: flex; align-items: center; gap: 8px;
-  background: #111827; color: white;
-  padding: 12px 20px; border: none; border-radius: 12px;
-  font-weight: 600; font-size: 15px; cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px; border-radius: 12px; border: none;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #fff; font-size: .875rem; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  box-shadow: 0 4px 14px rgba(99,102,241,.28);
+  transition: filter .15s, transform .15s;
 }
-.btn-primary-add:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
-.btn-primary-add svg { width: 18px; height: 18px; }
+.btn-primary-add svg { width: 17px; height: 17px; flex-shrink: 0; }
+.btn-primary-add:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
-/* --- FILTER BAR --- */
+/* Filter Card */
 .filter-card {
-  background: white; border-radius: 16px; padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.02); margin-bottom: 24px;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
+  padding: 18px 22px; margin-bottom: 18px;
+  box-shadow: 0 1px 4px rgba(15,23,42,.05);
 }
 .filter-grid {
-  display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 16px;
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  gap: 12px; margin-bottom: 14px;
 }
-.filter-item input, .form-select {
-  width: 100%; padding: 12px 16px; background: #f9fafb;
-  border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;
-  transition: all 0.2s; box-sizing: border-box; color: #111827;
+@media (max-width: 900px) { .filter-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .filter-grid { grid-template-columns: 1fr; } }
+
+.filter-item { position: relative; }
+.filter-item input,
+.form-select {
+  width: 100%; padding: 9px 13px; border: 1.5px solid #e2e8f0;
+  border-radius: 10px; font-size: .875rem; font-family: inherit;
+  color: #0f172a; background: #f8fafc; outline: none;
+  transition: border-color .15s, box-shadow .15s;
 }
-.filter-item input:focus, .form-select:focus { outline: none; border-color: #111827; background: #fff; }
-.search-box { position: relative; }
-.search-box input { padding-left: 44px; }
-.icon-search { position: absolute; left: 14px; top: 12px; width: 18px; height: 18px; color: #9ca3af; }
+.filter-item input:focus,
+.form-select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); background: #fff; }
+
+.search-box { display: flex; align-items: center; }
+.icon-search { position: absolute; left: 12px; width: 16px; height: 16px; color: #94a3b8; pointer-events: none; }
+.search-box input { padding-left: 38px; }
+
 .price-range { display: flex; align-items: center; gap: 8px; }
+.price-range input { flex: 1; }
+.price-range span { color: #94a3b8; font-weight: 600; flex-shrink: 0; }
 
-.filter-actions { display: flex; justify-content: flex-end; gap: 12px; }
-.btn-clear { background: transparent; border: none; color: #6b7280; font-weight: 600; cursor: pointer; padding: 10px 16px; }
-.btn-apply { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 10px; font-weight: 600; padding: 10px 24px; cursor: pointer; }
-.btn-apply:hover { background: #e5e7eb; }
-
-/* --- TABLE --- */
-.table-card {
-  background: white; border-radius: 16px; overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+.filter-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-clear {
+  padding: 8px 16px; border-radius: 10px;
+  border: 1.5px solid #e2e8f0; background: #fff;
+  font-size: .8125rem; font-weight: 600; color: #64748b;
+  cursor: pointer; font-family: inherit; transition: all .15s;
 }
-.modern-table { width: 100%; border-collapse: collapse; }
-.modern-table th { background: #f9fafb; padding: 16px; text-align: left; font-size: 13px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e5e7eb; }
-.modern-table td { padding: 16px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
-.modern-table tbody tr:hover { background: #fcfcfd; }
+.btn-clear:hover { background: #f1f5f9; }
+.btn-apply {
+  padding: 8px 18px; border-radius: 10px; border: none;
+  background: #0f172a; color: #fff;
+  font-size: .8125rem; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: filter .15s;
+}
+.btn-apply:hover { filter: brightness(1.1); }
 
-.id-col { font-weight: 600; color: #6b7280; }
-.img-thumb { width: 48px; height: 48px; border-radius: 8px; background: #f3f4f6; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-.img-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.no-img { font-size: 11px; color: #9ca3af; }
+/* Table Card */
+.table-card {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
+  overflow: hidden; box-shadow: 0 2px 10px rgba(15,23,42,.06);
+}
 
-.name-col strong { font-size: 15px; color: #111827; }
-.badges { display: flex; gap: 6px; flex-wrap: wrap; }
-.badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-.badge.brand { background: #e0e7ff; color: #3730a3; }
-.badge.category { background: #fce7f3; color: #9d174d; }
-.price-col { font-weight: 700; color: #111827; }
-
-.text-right { text-align: right !important; }
-.action-col { text-align: right; }
-.action-btn { background: transparent; border: none; font-weight: 600; font-size: 14px; cursor: pointer; padding: 6px 10px; border-radius: 6px; transition: background 0.2s; }
-.action-btn.edit { color: #0284c7; margin-right: 8px; }
-.action-btn.edit:hover { background: #e0f2fe; }
-.action-btn.delete { color: #e11d48; }
-.action-btn.delete:hover { background: #ffe4e6; }
-
-/* --- PAGINATION --- */
-.pagination { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #fff; border-top: 1px solid #e5e7eb; }
-.page-info { font-size: 14px; color: #6b7280; }
-.page-controls { display: flex; gap: 6px; }
-.page-controls button { padding: 8px 12px; border: 1px solid #e5e7eb; background: #fff; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; color: #374151; }
-.page-controls button:hover:not(:disabled) { background: #f3f4f6; }
-.page-controls button.active { background: #111827; color: #fff; border-color: #111827; }
-.page-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* --- MODAL --- */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-.modal { background: #fff; border-radius: 24px; width: 100%; max-width: 560px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); overflow: hidden; display: flex; flex-direction: column; max-height: 90vh; }
-.modal-header { padding: 24px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
-.modal-header h3 { margin: 0; font-size: 20px; font-weight: 800; }
-.close-btn { background: #f3f4f6; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.close-btn:hover { background: #e5e7eb; }
-
-.modal-body { padding: 24px; overflow-y: auto; }
-.form-group { margin-bottom: 20px; }
-.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #374151; }
-.req { color: #e11d48; }
-.form-group input, .form-group textarea, .form-select { width: 100%; padding: 12px 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; font-family: inherit; font-size: 14px; box-sizing: border-box; }
-.form-group input:focus, .form-group textarea:focus, .form-select:focus { outline: none; border-color: #111827; background: #fff; }
-
-.upload-area { border: 2px dashed #d1d5db; border-radius: 12px; padding: 24px; text-align: center; position: relative; background: #f9fafb; cursor: pointer; }
-.upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.upload-area p { margin: 0; font-size: 14px; font-weight: 500; color: #6b7280; }
-
-.img-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 16px; }
-.img-preview { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
-.img-preview img { width: 100%; height: 100%; object-fit: cover; }
-.img-preview button { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-.modal-footer { padding: 20px 24px; border-top: 1px solid #f3f4f6; display: flex; justify-content: flex-end; gap: 12px; background: #f9fafb; }
-.btn-cancel { padding: 12px 20px; background: white; border: 1px solid #d1d5db; border-radius: 12px; font-weight: 600; cursor: pointer; }
-.btn-save { padding: 12px 24px; background: #111827; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
-
-/* Effects */
-.fade-scale-enter-active, .fade-scale-leave-active { transition: opacity 0.3s, transform 0.3s; }
-.fade-scale-enter-from, .fade-scale-leave-to { opacity: 0; transform: scale(0.95); }
-.loader-container { padding: 60px; text-align: center; color: #6b7280; }
-.spinner { width: 30px; height: 30px; border: 3px solid #f3f4f6; border-top-color: #111827; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px; }
+/* Loader */
+.loader-container {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px; padding: 60px 24px;
+  color: #94a3b8; font-size: .9rem;
+}
+.spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid #f1f5f9; border-top-color: #6366f1;
+  animation: spin .7s linear infinite;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
-.empty-state { padding: 60px; text-align: center; color: #6b7280; }
-.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+
+/* Empty */
+.empty-state {
+  text-align: center; padding: 60px 24px; color: #94a3b8;
+}
+.empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.empty-state h3 { margin: 0 0 8px; color: #475569; font-size: 1rem; }
+.empty-state p { margin: 0; font-size: .875rem; }
+
+/* Table */
+.modern-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.modern-table thead tr { background: #f8fafc; }
+.modern-table th {
+  text-align: left; padding: 13px 18px;
+  font-size: .67rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: #94a3b8;
+  border-bottom: 1.5px solid #e2e8f0; white-space: nowrap;
+}
+.modern-table td {
+  padding: 13px 18px; border-bottom: 1px solid #f1f5f9;
+  color: #334155; vertical-align: middle;
+}
+.modern-table tbody tr { transition: background .15s; }
+.modern-table tbody tr:hover td { background: #fafbff; }
+.modern-table tbody tr:last-child td { border-bottom: none; }
+.text-right { text-align: right !important; }
+
+.id-col { color: #94a3b8; font-size: .8rem; font-weight: 700; }
+.name-col strong { font-weight: 700; color: #0f172a; }
+.price-col { font-weight: 700; font-variant-numeric: tabular-nums; color: #0f172a; }
+.action-col { text-align: right; }
+
+/* Product thumb */
+.img-thumb {
+  width: 48px; height: 48px; border-radius: 10px; overflow: hidden;
+  border: 1px solid #e2e8f0; background: #f8fafc;
+  display: flex; align-items: center; justify-content: center;
+}
+.img-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.no-img { font-size: .7rem; color: #94a3b8; }
+
+/* Brand/Category badges */
+.badges { display: flex; flex-wrap: wrap; gap: 5px; }
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 999px;
+  font-size: .7rem; font-weight: 700;
+}
+.badge.brand    { background: #ede9fe; color: #7c3aed; }
+.badge.category { background: #e0f2fe; color: #0369a1; }
+
+/* Action buttons */
+.action-btn {
+  padding: 5px 12px; border-radius: 7px;
+  font-size: .78rem; font-weight: 600; cursor: pointer;
+  border: 1.5px solid; font-family: inherit; transition: all .15s;
+  margin-left: 5px;
+}
+.action-btn.edit { border-color: #c7d2fe; color: #4f46e5; background: #fff; }
+.action-btn.edit:hover { background: #eef2ff; border-color: #6366f1; }
+.action-btn.delete { border-color: #fda4af; color: #be123c; background: #fff; }
+.action-btn.delete:hover { background: #fff1f2; border-color: #fb7185; }
+
+/* Pagination */
+.pagination {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: 12px;
+  padding: 14px 20px; border-top: 1px solid #f1f5f9;
+}
+.page-info { font-size: .84rem; color: #64748b; font-weight: 500; }
+.page-controls { display: flex; gap: 5px; align-items: center; }
+.page-controls button {
+  min-width: 32px; height: 32px; padding: 0 8px; border-radius: 8px;
+  border: 1.5px solid #e2e8f0; background: #fff;
+  font-size: .84rem; font-weight: 600; color: #475569;
+  cursor: pointer; font-family: inherit; transition: all .15s;
+}
+.page-controls button:hover:not(:disabled) { background: #f1f5f9; }
+.page-controls button.active { background: #0f172a; border-color: #0f172a; color: #fff; }
+.page-controls button:disabled { opacity: .35; cursor: not-allowed; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,.52);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 8000; padding: 20px;
+}
+.fade-scale-enter-active { transition: opacity .2s ease, transform .3s cubic-bezier(.16,1,.3,1); }
+.fade-scale-leave-active { transition: opacity .15s ease, transform .15s ease; }
+.fade-scale-enter-from { opacity: 0; transform: scale(.95) translateY(16px); }
+.fade-scale-leave-to   { opacity: 0; transform: scale(.97); }
+
+.modal {
+  background: #fff; border-radius: 18px; padding: 0;
+  max-width: 620px; width: 100%; max-height: min(92vh, 820px);
+  overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 24px 64px rgba(15,23,42,.22), 0 0 0 1px rgba(99,102,241,.07);
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 26px 18px; border-bottom: 1px solid #f1f5f9;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%); flex-shrink: 0;
+}
+.modal-header h3 { margin: 0; font-size: 1.1rem; font-weight: 800; color: #0f172a; }
+.close-btn { width: 32px; height: 32px; border-radius: 8px; background: #f1f5f9; border: none; font-size: 1.1rem; cursor: pointer; color: #64748b; transition: background .15s; }
+.close-btn:hover { background: #e2e8f0; }
+
+.modal-body { padding: 22px 26px; overflow-y: auto; flex: 1; }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.form-group label { font-size: .8125rem; font-weight: 600; color: #475569; }
+.req { color: #e11d48; }
+.form-group input,
+.form-group textarea,
+.form-group .form-select {
+  padding: 9px 12px; border: 1.5px solid #e2e8f0; border-radius: 9px;
+  font-size: .875rem; font-family: inherit; color: #0f172a; outline: none;
+  transition: border-color .15s, box-shadow .15s; background: #f8fafc;
+}
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group .form-select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); background: #fff; }
+.form-group textarea { resize: vertical; }
+
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+@media (max-width: 560px) { .form-row-2 { grid-template-columns: 1fr; } }
+
+/* Upload */
+.upload-area {
+  border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px;
+  text-align: center; position: relative; background: #f8fafc;
+  transition: border-color .15s, background .15s; cursor: pointer;
+}
+.upload-area:hover { border-color: #6366f1; background: #fafbff; }
+.upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.upload-area p { margin: 0; font-size: .84rem; color: #94a3b8; pointer-events: none; }
+
+.img-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.img-preview { position: relative; width: 72px; height: 72px; border-radius: 10px; overflow: hidden; border: 1.5px solid #e2e8f0; }
+.img-preview img { width: 100%; height: 100%; object-fit: cover; }
+.img-preview button {
+  position: absolute; top: 3px; right: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(15,23,42,.7); color: #fff; border: none;
+  font-size: .75rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+
+.error-msg { color: #be123c; font-size: .84rem; font-weight: 600; margin: -8px 0 8px; }
+
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 14px 26px; border-top: 1px solid #f1f5f9;
+  background: #f8fafc; flex-shrink: 0;
+}
+.btn-cancel {
+  padding: 9px 18px; border-radius: 10px;
+  border: 1.5px solid #e2e8f0; background: #fff; color: #64748b;
+  font-size: .875rem; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.btn-cancel:hover { background: #f1f5f9; }
+.btn-save {
+  padding: 9px 22px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+  font-size: .875rem; font-weight: 700; cursor: pointer; font-family: inherit;
+  box-shadow: 0 4px 12px rgba(99,102,241,.28);
+}
+/* ---- Smooth glass-fade effect cho data refresh ---- */
+.table-card {
+  transition: opacity 0.4s ease, filter 0.4s ease, transform 0.4s ease;
+  will-change: opacity, filter, transform;
+}
+
+.table-card.is-refreshing {
+  opacity: 0.5;
+  filter: blur(2px);
+  pointer-events: none;
+  transform: scale(0.995);
+}
+
+.text-end { text-align: right !important; }
 </style>
+

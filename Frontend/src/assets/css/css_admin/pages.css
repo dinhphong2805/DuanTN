@@ -1,0 +1,129 @@
+/* =============================================================
+   KESN ADMIN — Pages
+   (Page header, KPI Cards, Forms, shared page-level styles)
+   ============================================================= */
+
+/* ===== PAGE HEADER ===== */
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--a-n200);
+}
+.page-head h1 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+  font-weight: 800;
+  color: var(--a-n900);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+.page-sub {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  color: var(--a-n500);
+  line-height: 1.5;
+}
+.page-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  align-items: center;
+}
+
+/* ===== KPI CARDS ===== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: var(--a-white);
+  border: 1px solid var(--a-n200);
+  border-radius: var(--r-xl);
+  padding: 18px 20px;
+  box-shadow: var(--sh-sm);
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--t-fast), box-shadow var(--t-fast);
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
+
+/* Top accent bar */
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--a-brand), var(--a-brand-hover));
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+}
+.kpi-card--blue::before   { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+.kpi-card--green::before  { background: linear-gradient(90deg, #10b981, #059669); }
+.kpi-card--orange::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.kpi-card--red::before    { background: linear-gradient(90deg, #ef4444, #dc2626); }
+.kpi-card--purple::before { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+
+/* Color variants */
+.kpi-card--blue   { border-color: #bfdbfe; background: linear-gradient(160deg, #eff6ff 0%, #fff 60%); }
+.kpi-card--green  { border-color: #a7f3d0; background: linear-gradient(160deg, #ecfdf5 0%, #fff 60%); }
+.kpi-card--orange { border-color: #fde68a; background: linear-gradient(160deg, #fffbeb 0%, #fff 60%); }
+.kpi-card--red    { border-color: #fecaca; background: linear-gradient(160deg, #fef2f2 0%, #fff 60%); }
+.kpi-card--purple { border-color: #ddd6fe; background: linear-gradient(160deg, #f5f3ff 0%, #fff 60%); }
+
+.kpi-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--a-n400);
+  margin-bottom: 9px;
+}
+.kpi-value {
+  display: block;
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: var(--a-n900);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.kpi-sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--a-n500);
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+/* ===== SECTION CARD (generic white container) ===== */
+.section-card {
+  background: var(--a-white);
+  border: 1px solid var(--a-n200);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-sm);
+  padding: 24px 26px;
+  margin-bottom: 22px;
+}
+.section-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--a-n100);
+}
+.section-card__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--a-n900);
+  letter-spacing: -0.01em;
+}

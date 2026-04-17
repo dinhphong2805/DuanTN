@@ -146,4 +146,33 @@ public class OrderController {
         
         return ResponseEntity.ok(OrderDetailResponse.fromEntity(order));
     }
+
+    @PostMapping("/detail/{orderId}/cancel")
+    public ResponseEntity<?> cancelOrderUser(@PathVariable Long orderId, @RequestBody Map<String, String> body, @RequestParam Long userId) {
+        var orderOpt = orderRepository.findById(orderId);
+        if (orderOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "Không tìm thấy đơn hàng"));
+        }
+        
+        Order order = orderOpt.get();
+        if (!userId.equals(order.getUserId())) {
+            return ResponseEntity.status(403).body(Map.of("message", "Đơn hàng không thuộc tài khoản của bạn"));
+        }
+
+        String s = order.getStatus() == null ? "" : order.getStatus().toLowerCase();
+        if ("shipping".equals(s) || "delivered".equals(s) || "cancelled".equals(s)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Không thể hủy đơn hàng ở trạng thái này"));
+        }
+
+        String reason = body.get("cancelReason");
+        if (reason == null || reason.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Vui lòng nhập lý do hủy đơn"));
+        }
+
+        order.setStatus("cancelled");
+        order.setCancelReason(reason);
+        orderRepository.save(order);
+
+        return ResponseEntity.ok(Map.of("message", "Đã hủy đơn hàng thành công"));
+    }
 }
