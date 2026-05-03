@@ -37,11 +37,14 @@
             >
               ‹
             </button>
-            <img
-              :src="displayImage"
-              :alt="product.name"
-              @error="heroImgError = true"
-            />
+            <transition name="fade-hero" mode="out-in">
+              <img
+                :key="displayImage"
+                :src="displayImage"
+                :alt="product.name"
+                @error="heroImgError = true"
+              />
+            </transition>
             <button
               v-if="product.images.length > 1"
               class="nav-btn nav-btn--right"
@@ -139,7 +142,10 @@
             class="card"
             @click="$router.push(`/product/${item.id}`)"
           >
-            <img :src="item.image || placeholderImg" :alt="item.name" @error="$event.target.src = placeholderImg" />
+            <div class="card-media">
+              <img :src="item.image || placeholderImg" :alt="item.name" class="primary" @error="$event.target.src = placeholderImg" />
+              <img v-if="item.image2" :src="item.image2" :alt="item.name" class="secondary" @error="$event.target.style.display = 'none'" />
+            </div>
             <div class="card-body">
               <p class="card-brand">{{ item.brand || '—' }}</p>
               <p class="card-name">{{ item.name }}</p>
@@ -282,7 +288,8 @@ async function loadRecommendations() {
         price: p.price,
         brand: p.brand,
         category: p.category,
-        image: toDisplayUrl(p.imageUrl),
+        image: toDisplayUrl(parseImageUrls(p.imageUrl)[0]),
+        image2: toDisplayUrl(parseImageUrls(p.imageUrl)[1]),
       }))
     recommendations.value = others
   } catch {
@@ -332,7 +339,8 @@ function addToCart() {
   padding: 28px 24px 80px;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  color: #0a0a0a;
+  color: #1a1a1a;
+  background-color: #ffffff;
 }
 
 .loading-msg,
@@ -421,14 +429,21 @@ function addToCart() {
 .hero {
   border-radius: 18px;
   overflow: hidden;
-  background: #f3f4f6;
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
   position: relative;
+  height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hero img {
-  width: 100%;
-  height: 520px;
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
   display: block;
 }
 
@@ -440,7 +455,7 @@ function addToCart() {
   height: 38px;
   border-radius: 999px;
   border: none;
-  background: rgba(17, 24, 39, 0.65);
+  background: rgba(17, 24, 39, 0.75);
   color: #fff;
   font-size: 24px;
   line-height: 1;
@@ -457,21 +472,20 @@ function addToCart() {
 }
 
 .panel {
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid #f0f0f0;
   border-radius: 24px;
-  padding: 24px;
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 16px 48px rgba(31, 38, 135, 0.08);
+  padding: 32px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  gap: 16px;
+  transition: all 0.3s ease;
 }
 
 .panel:hover {
   transform: translateY(-4px);
-  box-shadow: 0 24px 60px rgba(79, 70, 229, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .brand {
@@ -654,7 +668,7 @@ function addToCart() {
   border: 1px solid #e5e7eb;
   border-radius: 14px;
   padding: 18px;
-  background: #fff;
+  background: #ffffff;
 }
 
 .review-form h3 {
@@ -755,16 +769,37 @@ function addToCart() {
   transform: translateY(-5px);
 }
 
-.card img {
+.card-media {
+  position: relative;
   width: 100%;
-  aspect-ratio: 4 / 5;
-  height: auto;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #fdfdfd;
 }
 
-.card:hover img {
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  transition: opacity 0.5s ease, transform 0.65s ease;
+}
+
+.card img.secondary {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  z-index: 1;
+}
+
+.card:hover img.primary {
+  opacity: 0;
+  transform: scale(1.05);
+}
+
+.card:hover img.secondary {
+  opacity: 1;
   transform: scale(1.05);
 }
 
@@ -792,6 +827,16 @@ function addToCart() {
 .card-price {
   font-size: 13px;
   font-weight: 700;
+}
+
+.fade-hero-enter-active,
+.fade-hero-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-hero-enter-from,
+.fade-hero-leave-to {
+  opacity: 0;
 }
 
 @media (max-width: 1024px) {

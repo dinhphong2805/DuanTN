@@ -124,9 +124,17 @@
               <img
                 :src="item.image || PLACEHOLDER_IMG"
                 :alt="item.name"
-                class="product-image"
+                class="product-image primary"
                 loading="lazy"
                 @error="$event.target.src = PLACEHOLDER_IMG"
+              />
+              <img
+                v-if="item.image2"
+                :src="item.image2"
+                :alt="item.name"
+                class="product-image secondary"
+                loading="lazy"
+                @error="$event.target.style.display = 'none'"
               />
               <div class="product-card-overlay" aria-hidden="true">
                 <span class="product-card-cta">Xem chi tiết</span>
@@ -180,9 +188,17 @@
                 <img
                   :src="item.image || PLACEHOLDER_IMG"
                   :alt="item.name"
-                  class="product-image"
+                  class="product-image primary"
                   loading="lazy"
                   @error="$event.target.src = PLACEHOLDER_IMG"
+                />
+                <img
+                  v-if="item.image2"
+                  :src="item.image2"
+                  :alt="item.name"
+                  class="product-image secondary"
+                  loading="lazy"
+                  @error="$event.target.style.display = 'none'"
                 />
                 <div class="product-card-overlay" aria-hidden="true">
                   <span class="product-card-cta">Xem chi tiết</span>
@@ -262,6 +278,11 @@ function getPrimaryImage(raw) {
   return urls.length ? toDisplayUrl(urls[0]) : ''
 }
 
+function getSecondaryImage(raw) {
+  const urls = parseImageUrls(raw)
+  return urls.length > 1 ? toDisplayUrl(urls[1]) : ''
+}
+
 const PLACEHOLDER_IMG =
   'data:image/svg+xml,' +
   encodeURIComponent(
@@ -301,6 +322,7 @@ const results = computed(() => {
   return list.map((p) => ({
     id: p.id,
     image: getPrimaryImage(p.imageUrl),
+    image2: getSecondaryImage(p.imageUrl),
     brand: p.brand,
     name: p.name,
     category: p.category,

@@ -437,10 +437,18 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.65s var(--sp-ease);
+  transition: opacity 0.5s var(--sp-ease), transform 0.65s var(--sp-ease);
 }
 
-.product-card:hover .product-image {
+.product-image.secondary {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  z-index: 1;
+}
+
+.product-card:hover .product-image.primary {
   transform: scale(1.06);
 }
 
