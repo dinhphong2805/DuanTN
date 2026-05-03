@@ -2,7 +2,11 @@
   <div class="app">
     <AppHeader v-if="showHeader" />
     <main class="app-main">
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <transition name="page-transition" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </main>
     <AppFooter v-if="showHeader" />
     <SupportChatWidget />
@@ -31,11 +35,27 @@ const showHeader = computed(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: #0a0a0a;
 }
 
 .app-main {
   flex: 1 0 auto;
   min-width: 0;
 }
-</style>
 
+/* Page Transitions */
+.page-transition-enter-active,
+.page-transition-leave-active {
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.page-transition-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-transition-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+</style>

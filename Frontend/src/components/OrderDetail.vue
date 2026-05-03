@@ -353,9 +353,17 @@ watch(
 
 .order-detail-page {
   font-family: 'Inter', -apple-system, system-ui, sans-serif;
-  background: linear-gradient(180deg, #f8f9fb 0%, #f0f2f5 48%, #eceef2 100%);
-  min-height: calc(100vh - 120px);
-  color: #0f172a;
+  background: linear-gradient(-45deg, #0f172a, #000000, #312e81, #0f172a);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+  min-height: calc(100vh - 100px);
+  color: #fff;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .order-detail-inner {
@@ -369,7 +377,7 @@ watch(
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.7);
   margin: 0 0 8px;
 }
 
@@ -386,7 +394,7 @@ watch(
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.7);
   font-weight: 600;
   text-decoration: none;
   padding: 6px 0;
@@ -394,7 +402,7 @@ watch(
 }
 
 .breadcrumb-link:hover {
-  color: #0f172a;
+  color: #fff;
 }
 
 .breadcrumb-icon {
@@ -409,7 +417,7 @@ watch(
 }
 
 .breadcrumb-current {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
 }
 
@@ -417,9 +425,10 @@ watch(
   text-align: center;
   padding: 56px 24px;
   border-radius: 20px;
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 40px rgba(15, 23, 42, 0.06);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
 
 .state--loading p {
@@ -473,12 +482,13 @@ watch(
 }
 
 .hero-panel {
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   padding: 28px 28px 24px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 16px 48px rgba(15, 23, 42, 0.07);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
 }
 
 .hero-main {
@@ -495,11 +505,17 @@ watch(
   letter-spacing: -0.03em;
   margin: 0 0 10px;
   line-height: 1.2;
+  background: linear-gradient(135deg, #fff, #a5b4fc, #fbcfe8);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 5s linear infinite;
 }
 
 .order-num {
   font-variant-numeric: tabular-nums;
-  color: #0f172a;
+  color: #fff;
+  -webkit-text-fill-color: #fff;
 }
 
 .hero-meta {
@@ -514,7 +530,7 @@ watch(
 
 .meta-label {
   font-weight: 500;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .status-pill {
@@ -567,11 +583,12 @@ watch(
 }
 
 .panel {
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   padding: 24px 26px 26px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 32px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
 .panel--timeline {
@@ -584,7 +601,7 @@ watch(
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.8);
   margin: 0 0 20px;
   display: flex;
   align-items: center;
@@ -594,8 +611,8 @@ watch(
 .panel-count {
   font-size: 12px;
   font-weight: 800;
-  background: #f1f5f9;
-  color: #475569;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
   padding: 2px 10px;
   border-radius: 999px;
   letter-spacing: 0;
@@ -617,7 +634,7 @@ watch(
   right: 12%;
   top: 15px;
   height: 2px;
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 1px;
 }
 
@@ -640,36 +657,38 @@ watch(
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #fff;
-  border: 2px solid #cbd5e1;
-  box-shadow: 0 0 0 4px #fff;
-  transition: border-color 0.2s, background 0.2s;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
 }
 
 .timeline-step.done .timeline-dot {
-  background: #0f172a;
-  border-color: #0f172a;
+  background: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .timeline-step.current .timeline-dot {
-  background: #fff;
-  border-color: #0f172a;
+  background: transparent;
+  border-color: #fff;
   border-width: 3px;
   width: 16px;
   height: 16px;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
 }
 
 .timeline-label {
   font-size: 11px;
   font-weight: 600;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.5);
   line-height: 1.35;
   display: block;
 }
 
 .timeline-step.done .timeline-label,
 .timeline-step.current .timeline-label {
-  color: #334155;
+  color: #fff;
 }
 
 .two-col {
@@ -695,7 +714,7 @@ watch(
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.6);
   margin: 0 0 6px;
 }
 
@@ -703,7 +722,7 @@ watch(
   margin: 0;
   font-size: 15px;
   line-height: 1.5;
-  color: #0f172a;
+  color: rgba(255, 255, 255, 0.95);
   font-weight: 500;
 }
 
@@ -723,12 +742,12 @@ watch(
   grid-template-columns: 1fr 44px minmax(92px, auto) minmax(104px, auto);
   gap: 12px;
   padding: 12px 16px;
-  background: #f8fafc;
+  background: rgba(255, 255, 255, 0.05);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .table-body {
@@ -744,17 +763,17 @@ watch(
   padding: 16px;
   align-items: center;
   font-size: 14px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   transition: background 0.12s;
 }
 
 .table-row:hover {
-  background: #fafbfc;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .cell-name {
   font-weight: 600;
-  color: #0f172a;
+  color: #fff;
 }
 
 .t-center {
@@ -771,7 +790,7 @@ watch(
 
 .strong {
   font-weight: 700;
-  color: #0f172a;
+  color: #fff;
 }
 
 .total-strip {
@@ -782,20 +801,20 @@ watch(
   gap: 12px;
   margin-top: 20px;
   padding: 20px 4px 0;
-  border-top: 2px solid #0f172a;
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .total-label {
   font-size: 14px;
   font-weight: 600;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .total-value {
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #0f172a;
+  color: #fff;
 }
 
 .total-value small {

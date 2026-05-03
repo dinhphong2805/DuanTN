@@ -60,45 +60,46 @@
     <div v-else class="content-body" :class="{ 'is-refreshing': isRefreshing }">
       
       <!-- Filter/Search Toolbar -->
-      <section v-if="orders.length" class="toolbar card shadow-sm border-0 p-3 mb-4 d-block">
-        <div class="row g-3 align-items-center">
-          <div class="col-md-4">
-            <div class="position-relative">
-              <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
-              <input
-                v-model="searchQuery"
-                type="search"
-                class="form-control border-0 bg-light ps-5 py-2"
-                placeholder="Tìm mã đơn, khách hàng..."
-                autocomplete="off"
-              />
-            </div>
-          </div>
-          <div class="col-md-5">
-            <div class="d-flex flex-wrap gap-2" role="group">
-              <button
-                v-for="f in statusFilters"
-                :key="f.value"
-                type="button"
-                class="btn btn-sm px-3 rounded-pill fw-bold text-nowrap"
-                :class="statusFilter === f.value ? 'btn-dark shadow-sm' : 'btn-light text-secondary border-0'"
-                @click="statusFilter = f.value; page = 1"
-              >
-                {{ f.label }}
-              </button>
-            </div>
-          </div>
-          <div class="col-md-3 text-md-end">
-            <div class="d-inline-flex align-items-center gap-2">
-              <span class="small text-secondary fw-bold text-nowrap">Sắp xếp:</span>
-              <select v-model="sortKey" class="form-select form-select-sm border-0 bg-light w-auto fw-medium">
-                <option value="date_desc">Mới nhất</option>
-                <option value="date_asc">Cũ nhất</option>
-                <option value="total_desc">Giá cao → thấp</option>
-                <option value="total_asc">Giá thấp → cao</option>
-              </select>
-            </div>
-          </div>
+      <section v-if="orders.length" class="orders-toolbar mb-4">
+        <!-- Search -->
+        <div class="orders-search-wrap">
+          <i class="bi bi-search orders-search-icon"></i>
+          <input
+            v-model="searchQuery"
+            type="search"
+            class="orders-search-input"
+            placeholder="Tìm mã đơn, khách hàng..."
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- Status filter tabs — luôn 1 hàng -->
+        <div class="orders-filter-tabs" role="group">
+          <button
+            v-for="f in statusFilters"
+            :key="f.value"
+            type="button"
+            class="status-tab-btn"
+            :class="statusFilter === f.value ? 'status-tab-btn--active' : ''"
+            @click="setFilter(f.value)"
+          >
+            {{ f.label }}
+            <span v-if="f.value !== 'all'" class="status-tab-count">
+              {{ countByStatus[f.value] || 0 }}
+            </span>
+            <span v-else class="status-tab-count">{{ orders.length }}</span>
+          </button>
+        </div>
+
+        <!-- Sort -->
+        <div class="orders-sort-wrap">
+          <span class="orders-sort-label">Sắp xếp:</span>
+          <select v-model="sortKey" class="orders-sort-select">
+            <option value="date_desc">Mới nhất</option>
+            <option value="date_asc">Cũ nhất</option>
+            <option value="total_desc">Giá cao → thấp</option>
+            <option value="total_asc">Giá thấp → cao</option>
+          </select>
         </div>
       </section>
 
@@ -128,38 +129,40 @@
                 <th class="th-act">Thao tác</th>
               </tr>
             </thead>
-            <tbody>
-              <tr v-for="o in pagedOrders" :key="o.id" class="data-row">
-                <td class="mono">#{{ o.id }}</td>
-                <td>
-                  <div class="cell-name">{{ o.customerName || '—' }}</div>
-                  <div v-if="o.customerEmail" class="cell-muted small">{{ o.customerEmail }}</div>
-                </td>
-                <td class="cell-phone">{{ o.customerPhone || '—' }}</td>
-                <td class="cell-date">{{ formatDateTime(o.createdAt) }}</td>
-                <td>
-                  <span class="status-badge" :class="o.status">{{ statusText(o.status) }}</span>
-                  <select
-                    v-model="o.status"
-                    class="status-select mt-1"
-                    :class="o.status"
-                    @change="updateStatus(o)"
-                  >
-                    <option value="pending">Chờ xử lý</option>
-                    <option value="shipping">Đang giao</option>
-                    <option value="delivered">Đã giao</option>
-                    <option value="cancelled" disabled>Đã hủy</option>
-                  </select>
-                </td>
-                <td class="th-num mono strong text-primary">{{ formatPrice(o.total) }} ₫</td>
-                <td>
-                  <div class="d-flex gap-1 justify-content-end">
-                    <button type="button" class="btn btn-sm btn-primary px-3 shadow-sm" @click="openDetail(o)">Chi tiết</button>
-                    <button v-if="o.status !== 'delivered' && o.status !== 'cancelled' && o.status !== 'shipping'" type="button" class="btn btn-sm btn-outline-danger" @click="promptCancel(o)">Hủy</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
+            <Transition name="orders-fade" mode="out-in">
+              <tbody :key="statusFilter + '_' + page + '_' + searchQuery">
+                <tr v-for="o in pagedOrders" :key="o.id" class="data-row">
+                  <td class="mono">#{{ o.id }}</td>
+                  <td>
+                    <div class="cell-name">{{ o.customerName || '\u2014' }}</div>
+                    <div v-if="o.customerEmail" class="cell-muted small">{{ o.customerEmail }}</div>
+                  </td>
+                  <td class="cell-phone">{{ o.customerPhone || '\u2014' }}</td>
+                  <td class="cell-date">{{ formatDateTime(o.createdAt) }}</td>
+                  <td>
+                    <span class="status-badge" :class="o.status">{{ statusText(o.status) }}</span>
+                    <select
+                      v-model="o.status"
+                      class="status-select mt-1"
+                      :class="o.status"
+                      @change="updateStatus(o)"
+                    >
+                      <option value="pending">Chờ xử lý</option>
+                      <option value="shipping">Đang giao</option>
+                      <option value="delivered">Đã giao</option>
+                      <option value="cancelled" disabled>Đã hủy</option>
+                    </select>
+                  </td>
+                  <td class="th-num mono strong text-primary">{{ formatPrice(o.total) }} ₫</td>
+                  <td>
+                    <div class="d-flex gap-1 justify-content-end">
+                      <button type="button" class="btn btn-sm btn-primary px-3 shadow-sm" @click="openDetail(o)">Chi tiết</button>
+                      <button v-if="o.status !== 'delivered' && o.status !== 'cancelled' && o.status !== 'shipping'" type="button" class="btn btn-sm btn-outline-danger" @click="promptCancel(o)">Hủy</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </Transition>
           </table>
         </div>
         <nav v-if="totalPages > 1" class="pager" aria-label="Phân trang">
@@ -343,12 +346,28 @@ const toast = ref({ message: '', type: 'ok' })
 let toastTimer = null
 
 const statusFilters = [
-  { value: 'all', label: 'Tất cả' },
-  { value: 'pending', label: 'Chờ xử lý' },
-  { value: 'shipping', label: 'Đang giao' },
+  { value: 'all',       label: 'Tất cả' },
+  { value: 'pending',   label: 'Chờ xử lý' },
+  { value: 'shipping',  label: 'Đang giao' },
   { value: 'delivered', label: 'Đã giao' },
   { value: 'cancelled', label: 'Đã hủy' },
 ]
+
+// Dem so don theo tung trang thai
+const countByStatus = computed(() => {
+  const map = { pending: 0, shipping: 0, delivered: 0, cancelled: 0 }
+  for (const o of orders.value) {
+    const s = (o.status || '').toLowerCase()
+    if (s in map) map[s]++
+  }
+  return map
+})
+
+// Doi tab voi reset trang
+function setFilter(value) {
+  statusFilter.value = value
+  page.value = 1
+}
 
 function showToast(msg, type = 'ok') {
   if (toastTimer) clearTimeout(toastTimer)
@@ -630,4 +649,169 @@ onMounted(load)
   font-size: 0.75rem;
   border-radius: 4px;
 }
+
+/* ===== ORDERS TOOLBAR — 1 hàng ngang ===== */
+.orders-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15,23,42,.04);
+  overflow: hidden;
+}
+
+/* Search */
+.orders-search-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 240px;
+}
+.orders-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 13px;
+  pointer-events: none;
+}
+.orders-search-input {
+  width: 100%;
+  padding: 9px 12px 9px 34px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.orders-search-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+  background: #fff;
+}
+.orders-search-input::placeholder { color: #94a3b8; }
+
+/* Filter tabs — flex:1 để chiếm hết không gian, nowrap để không xuống hàng */
+.orders-filter-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.orders-filter-tabs::-webkit-scrollbar { display: none; }
+
+/* Sort */
+.orders-sort-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+.orders-sort-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+}
+.orders-sort-select {
+  padding: 7px 10px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 9px;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  color: #334155;
+  background: #f8fafc;
+  cursor: pointer;
+  outline: none;
+  transition: border-color .15s;
+}
+.orders-sort-select:focus { border-color: #6366f1; }
+
+
+/* ===== STATUS TAB BUTTONS ===== */
+.status-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.15s ease;
+}
+.status-tab-btn:hover:not(.status-tab-btn--active) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #334155;
+  transform: translateY(-1px);
+}
+.status-tab-btn--active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+  transform: translateY(-1px);
+}
+
+.status-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+  transition: background 0.2s;
+}
+.status-tab-btn:not(.status-tab-btn--active) .status-tab-count {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+/* ===== TBODY FADE TRANSITION ===== */
+.orders-fade-enter-active {
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.orders-fade-leave-active {
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  position: absolute;
+  width: 100%;
+}
+.orders-fade-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.orders-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* Wrapper relative cho transition */
+.data-table { position: relative; }
 </style>

@@ -28,7 +28,7 @@
       <nav class="al-nav" aria-label="Menu quan tri">
 
         <div class="al-nav-section">
-          <span class="al-nav-section__label">Tong quan</span>
+          <span class="al-nav-section__label">Tổng quan</span>
           <router-link to="/admin" class="al-nav-link" active-class="al-nav-link--active" exact>
             <span class="al-nav-link__icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -36,19 +36,19 @@
                 <rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>
               </svg>
             </span>
-            <span class="al-nav-link__label">Thong ke</span>
+            <span class="al-nav-link__label">Thống kê</span>
           </router-link>
         </div>
 
         <div class="al-nav-section">
-          <span class="al-nav-section__label">Hang hoa</span>
+          <span class="al-nav-section__label">Hàng hóa</span>
           <router-link to="/admin/products" class="al-nav-link" active-class="al-nav-link--active">
             <span class="al-nav-link__icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
               </svg>
             </span>
-            <span class="al-nav-link__label">San pham</span>
+            <span class="al-nav-link__label">Sản phẩm</span>
           </router-link>
           <router-link to="/admin/categories" class="al-nav-link" active-class="al-nav-link--active">
             <span class="al-nav-link__icon">
@@ -56,7 +56,7 @@
                 <path d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
               </svg>
             </span>
-            <span class="al-nav-link__label">Danh muc</span>
+            <span class="al-nav-link__label">Danh mục</span>
           </router-link>
           <router-link to="/admin/imports" class="al-nav-link" active-class="al-nav-link--active">
             <span class="al-nav-link__icon">
@@ -64,7 +64,7 @@
                 <path d="M3 7.5h18M5.25 7.5v10.125A2.25 2.25 0 007.5 19.875h9a2.25 2.25 0 002.25-2.25V7.5M9.75 12l2.25 2.25L14.25 12M12 5.25v9"/>
               </svg>
             </span>
-            <span class="al-nav-link__label">Nhap hang</span>
+            <span class="al-nav-link__label">Nhập hàng</span>
           </router-link>
         </div>
 
@@ -76,7 +76,7 @@
                 <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
             </span>
-            <span class="al-nav-link__label">Don hang</span>
+            <span class="al-nav-link__label">Đơn hàng</span>
             <span v-if="hasNewOrders" class="al-nav-link__dot" aria-label="Co don hang moi"></span>
           </router-link>
           <router-link to="/admin/vouchers" class="al-nav-link" active-class="al-nav-link--active">
@@ -85,7 +85,7 @@
                 <path d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.75 19.5h16.5a2.25 2.25 0 002.25-2.25v-6a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6a2.25 2.25 0 002.25 2.25z"/>
               </svg>
             </span>
-            <span class="al-nav-link__label">Ma giam gia</span>
+            <span class="al-nav-link__label">Mã giảm giá</span>
           </router-link>
           <router-link to="/admin/users" class="al-nav-link" active-class="al-nav-link--active">
             <span class="al-nav-link__icon">
@@ -93,7 +93,21 @@
                 <path d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
               </svg>
             </span>
-            <span class="al-nav-link__label">Nguoi dung</span>
+            <span class="al-nav-link__label">Người dùng</span>
+          </router-link>
+        </div>
+
+        <div class="al-nav-section">
+          <span class="al-nav-section__label">Cấu hình</span>
+          <router-link to="/admin/banners" class="al-nav-link" active-class="al-nav-link--active">
+            <span class="al-nav-link__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </span>
+            <span class="al-nav-link__label">Banner</span>
           </router-link>
         </div>
 
@@ -107,7 +121,7 @@
               <path d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
             </svg>
           </span>
-          <span class="al-nav-link__label">Trang chu</span>
+          <span class="al-nav-link__label">Trang chủ</span>
         </router-link>
         <button type="button" class="al-logout-btn" @click="logout">
           <span class="al-nav-link__icon">
@@ -115,7 +129,7 @@
               <path d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
             </svg>
           </span>
-          <span class="al-nav-link__label">Dang xuat</span>
+          <span class="al-nav-link__label">Đăng xuất</span>
         </button>
       </div>
     </aside>
@@ -565,6 +579,7 @@ onBeforeUnmount(() => {
   margin-left: 256px;
   transition: margin-left 0.3s cubic-bezier(0.16,1,0.3,1);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 .al-root.al--collapsed .al-main { margin-left: 68px; }
 
@@ -754,8 +769,11 @@ onBeforeUnmount(() => {
    ========================================================= */
 .al-content {
   flex: 1;
+  width: 100%;
+  min-width: 0;
   padding: 28px 30px;
   overflow-anchor: none;
+  overflow-x: hidden;
 }
 
 /* =========================================================

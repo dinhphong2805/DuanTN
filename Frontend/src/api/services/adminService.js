@@ -113,3 +113,27 @@ export async function uploadImage(file) {
   return data.url || null
 }
 
+// ─── Banner Management ────────────────────────────────────────────
+export async function getBanners() {
+  const { data } = await client.get('admin/banners')
+  return data
+}
+
+export async function createBanner(banner) {
+  const { data } = await client.post('admin/banners', banner)
+  return data
+}
+
+export async function updateBanner(id, banner) {
+  const { data } = await client.put(`admin/banners/${id}`, banner)
+  return data
+}
+
+export async function toggleBanner(id) {
+  const { data } = await client.patch(`admin/banners/${id}/toggle`)
+  return data
+}
+
+export async function deleteBanner(id) {
+  await client.delete(`admin/banners/${id}`)
+}

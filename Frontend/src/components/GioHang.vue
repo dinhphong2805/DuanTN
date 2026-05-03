@@ -341,10 +341,20 @@ async function applyVoucher() {
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-  background: linear-gradient(165deg, #111827 0%, #0a0a0a 48%, #0a0a0a 100%);
+  background: linear-gradient(-45deg, #0f172a, #000000, #312e81, #0f172a);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
   color: #fff;
-  padding: 36px 24px 40px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 50px 24px 60px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .cart-hero-inner {
@@ -395,10 +405,19 @@ async function applyVoucher() {
 
 .cart-title {
   margin: 0;
-  font-size: clamp(28px, 3.2vw, 40px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.12;
+  background: linear-gradient(135deg, #fff, #a5b4fc, #fbcfe8);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 5s linear infinite;
+}
+
+@keyframes shine {
+  to { background-position: 200% center; }
 }
 
 .cart-subtitle {
@@ -499,18 +518,20 @@ async function applyVoucher() {
 }
 
 .item {
-  border: 1px solid var(--cp-line);
-  border-radius: 18px;
-  background: #fff;
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
   overflow: hidden;
   display: grid;
   grid-template-columns: 160px minmax(0, 1fr);
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.05);
-  transition: box-shadow 0.25s ease;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .item:hover {
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(79, 70, 229, 0.1);
 }
 
 .item-media {
@@ -713,14 +734,15 @@ async function applyVoucher() {
 }
 
 .summary {
-  border: 1px solid var(--cp-line);
-  border-radius: 18px;
-  padding: 22px 20px 24px;
-  background: #fff;
-  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 24px;
+  padding: 26px 24px 28px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 16px 48px rgba(31, 38, 135, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   position: sticky;
   top: 96px;
 }
@@ -854,24 +876,28 @@ async function applyVoucher() {
 }
 
 .btn-checkout {
-  margin-top: 4px;
+  margin-top: 8px;
   width: 100%;
   padding: 16px 20px;
   border: none;
   border-radius: 999px;
-  background: #0a0a0a;
+  background: linear-gradient(45deg, #4f46e5, #ec4899);
+  background-size: 200% auto;
   color: #fff;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
+  box-shadow: 0 8px 24px rgba(236, 72, 153, 0.3);
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .btn-checkout:hover {
-  background: #111827;
+  background-position: right center;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 16px 32px rgba(79, 70, 229, 0.4);
 }
 
 .btn-checkout:active {

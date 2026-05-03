@@ -10,20 +10,19 @@
       </button>
     </div>
 
-    <div class="toolbar card shadow-sm border-0 p-3 mb-4">
-      <div class="row g-2 align-items-center">
-        <div class="col-md-6 col-lg-4">
-          <div class="input-group">
-            <span class="input-group-text bg-white border-end-0 text-secondary">
-              <i class="bi bi-search"></i>
-            </span>
-            <input v-model.trim="keyword" class="form-control border-start-0 ps-0" placeholder="Tìm mã phiếu, NCC..." @keyup.enter="load(true)" />
-          </div>
-        </div>
-        <div class="col-md-2">
-          <button class="btn btn-dark w-100 fw-bold" @click="load(true)">Tìm kiếm</button>
-        </div>
+    <div class="imports-filter-bar">
+      <div class="imports-search-wrap">
+        <i class="bi bi-search imports-search-icon"></i>
+        <input
+          v-model.trim="keyword"
+          class="imports-search-input"
+          placeholder="Tìm mã phiếu, nhà cung cấp..."
+          @keyup.enter="load(true)"
+        />
       </div>
+      <button class="imports-search-btn" @click="load(true)">
+        <i class="bi bi-search me-1"></i> Tìm kiếm
+      </button>
     </div>
 
     <div class="table-card shadow-sm border-0" :class="{ 'is-refreshing': isRefreshing }">
@@ -203,7 +202,12 @@ function currentCreatorName() {
 
 function getProductSnapshot(items) {
   if (!items || !items.length) return '—'
-  return items.map(i => `${i.productName} (${i.quantity})`).join(', ')
+  return items.map(i => {
+    // API có thể trả về tên ở nhiều field khác nhau
+    const name = i.productName || i.product?.name || i.name || 'Sản phẩm'
+    const qty  = i.quantity   || i.qty   || 0
+    return `${name} (${qty})`
+  }).join(', ')
 }
 
 function resetForm() {
@@ -345,20 +349,74 @@ onMounted(async () => {
 }
 .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
-/* Toolbar */
-.toolbar {
-  display: flex; gap: 10px; flex-wrap: wrap;
-  margin-bottom: 16px; padding: 13px 18px;
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+/* Filter bar for imports page */
+.imports-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
   box-shadow: 0 1px 3px rgba(15,23,42,.04);
 }
-.toolbar input {
-  flex: 1 1 220px; padding: 9px 13px; border: 1.5px solid #e2e8f0;
-  border-radius: 10px; font-size: .875rem; font-family: inherit;
-  color: #0f172a; background: #f8fafc; outline: none;
-  transition: border-color .15s, box-shadow .15s;
+
+.imports-search-wrap {
+  flex: 1 1 260px;
+  position: relative;
+  min-width: 200px;
+  max-width: 480px;
 }
-.toolbar input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); background: #fff; }
+
+.imports-search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.imports-search-input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: .875rem;
+  font-family: 'Inter', inherit;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.imports-search-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+  background: #fff;
+}
+.imports-search-input::placeholder { color: #94a3b8; }
+
+.imports-search-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  background: #0f172a;
+  color: #fff;
+  font-size: .875rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: filter .15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.imports-search-btn:hover { filter: brightness(1.15); }
 
 /* Card wrapper */
 .card {

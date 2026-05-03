@@ -896,3 +896,47 @@ button[disabled] {
 
 /* ---- text-danger ---- */
 .text-danger { color: #be123c !important; }
+
+/* ============================================================
+   BOOTSTRAP CONFLICT OVERRIDES
+   Bootstrap 5's .modal class has global styles:
+     position: fixed; top: 0; left: 0; width: 100%; height: 100%
+   This conflicts with our custom .modal dialog boxes, pushing
+   them to the top-left corner instead of center of screen.
+   Override here to restore correct admin modal behavior.
+   ============================================================ */
+
+/* Override Bootstrap .modal — restore our centered dialog box */
+.modal-overlay .modal,
+.overlay .modal {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: min(92vh, 820px) !important;
+  display: flex !important;
+  z-index: auto !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+/* Ensure .modal-overlay always works as a centered flex backdrop */
+.modal-overlay,
+.overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 8000 !important;
+  padding: 20px !important;
+}
+
+/* AdminProducts modal (uses Transition + .modal-overlay) */
+.modal-overlay > .modal {
+  flex-direction: column;
+  border-radius: 18px;
+  background: #fff;
+  overflow: hidden;
+}

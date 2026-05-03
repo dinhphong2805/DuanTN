@@ -339,18 +339,18 @@ async function placeOrder() {
 </script>
 
 <style scoped>
-.checkout-page { --primary: #1d1d1f; --accent: #0071e3; --err: #ff3b30; min-height: 100vh; padding: 40px 20px; background: #fbfbfd; color: var(--primary); }
+.checkout-page { --primary: #1d1d1f; --accent: #0071e3; --err: #ff3b30; min-height: 100vh; padding: 40px 20px; background: linear-gradient(-45deg, #0f172a, #000000, #312e81, #0f172a); background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: #fff; }
 
 /* Header & Breadcrumb */
 .checkout-header { text-align: center; margin-bottom: 50px; }
-.breadcrumb-glass { display: inline-flex; gap: 10px; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); padding: 10px 25px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); font-size: 13px; color: #86868b; }
-.checkout-title { font-size: 42px; font-weight: 800; margin: 20px 0 10px; letter-spacing: -1px; }
+.breadcrumb-glass { display: inline-flex; gap: 10px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 10px 25px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 13px; color: rgba(255, 255, 255, 0.7); }
+.checkout-title { font-size: 42px; font-weight: 800; margin: 20px 0 10px; letter-spacing: -1px; background: linear-gradient(135deg, #fff, #a5b4fc, #fbcfe8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
 /* Layout Grid - Balanced */
 .checkout-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px; max-width: 1200px; margin: 0 auto; align-items: start; }
 
 /* God Card & Inputs */
-.god-card { background: #fff; border-radius: 24px; padding: 35px; margin-bottom: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.02); transition: 0.3s; }
+.god-card { background: rgba(255, 255, 255, 0.9); border-radius: 24px; padding: 35px; margin-bottom: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.2); transition: 0.3s; color: #1d1d1f; }
 .card-error { border: 1.5px solid var(--err); }
 .card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
 .step-badge { width: 30px; height: 30px; background: var(--primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
@@ -387,8 +387,8 @@ async function placeOrder() {
 .item-thumb img { width: 100%; height: 100%; object-fit: contain; }
 .qty-badge { position: absolute; top: -8px; right: -8px; background: var(--accent); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; border: 2px solid var(--primary); }
 .grand-total { font-size: 28px; color: #fff; font-weight: 800; }
-.btn-checkout-god { width: 100%; padding: 20px; background: var(--accent); color: #fff; border: none; border-radius: 18px; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 30px; transition: 0.3s; }
-.btn-checkout-god:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 113, 227, 0.3); }
+.btn-checkout-god { width: 100%; padding: 20px; background: linear-gradient(45deg, #4f46e5, #ec4899); background-size: 200% auto; color: #fff; border: none; border-radius: 18px; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 30px; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 8px 24px rgba(236, 72, 153, 0.3); }
+.btn-checkout-god:hover { background-position: right center; transform: translateY(-3px) scale(1.02); box-shadow: 0 16px 32px rgba(79, 70, 229, 0.4); }
 
 /* Animation Classes */
 .animate-fade-down { animation: fadeDown 0.6s ease-out; }

@@ -169,9 +169,17 @@ function changePassword() {
 .profile-page {
   font-family: 'Inter', -apple-system, system-ui, sans-serif;
   width: 100%;
-  background: linear-gradient(180deg, #f8f9fb 0%, #eef1f4 55%, #e8ecf0 100%);
+  background: linear-gradient(-45deg, #0f172a, #000000, #312e81, #0f172a);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
   min-height: calc(100vh - 100px);
-  color: #0f172a;
+  color: #fff;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .profile-inner {
@@ -189,7 +197,7 @@ function changePassword() {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.7);
   margin: 0 0 10px;
 }
 
@@ -199,11 +207,20 @@ function changePassword() {
   letter-spacing: -0.03em;
   margin: 0 0 8px;
   line-height: 1.15;
+  background: linear-gradient(135deg, #fff, #a5b4fc, #fbcfe8);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 5s linear infinite;
+}
+
+@keyframes shine {
+  to { background-position: 200% center; }
 }
 
 .profile-lead {
   font-size: 15px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.8);
   margin: 0;
   line-height: 1.5;
   max-width: 420px;
@@ -221,10 +238,11 @@ function changePassword() {
   flex-direction: column;
   gap: 6px;
   padding: 14px;
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 18px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 40px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
   position: sticky;
   top: 88px;
 }
@@ -238,20 +256,20 @@ function changePassword() {
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  color: #475569;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  color: #e2e8f0;
+  transition: all 0.2s ease;
 }
 
 .nav-item:hover {
-  background: #f8fafc;
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 .nav-item.active {
-  background: #0f172a;
+  background: linear-gradient(45deg, #4f46e5, #ec4899);
   color: #fff;
-  border-color: #0f172a;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.3);
 }
 
 .nav-item--admin {
@@ -282,10 +300,11 @@ function changePassword() {
 }
 
 .profile-main .block {
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   padding: 28px 28px 32px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
 }
 
 .block--raised {
@@ -301,22 +320,23 @@ function changePassword() {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.8);
   margin: 0 0 22px;
 }
 
 .profile-summary {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
   border-radius: 16px;
   padding: 20px 22px;
   margin-bottom: 28px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .summary-row {
   margin: 0 0 10px;
   font-size: 15px;
-  color: #334155;
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.5;
 }
 
@@ -325,7 +345,7 @@ function changePassword() {
 }
 
 .summary-row strong {
-  color: #0f172a;
+  color: #fff;
   margin-right: 8px;
   font-weight: 700;
 }
@@ -343,7 +363,7 @@ function changePassword() {
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #334155;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .form-group input {
@@ -357,18 +377,18 @@ function changePassword() {
 
 .form-group input:focus {
   outline: none;
-  border-color: #0f172a;
-  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
 .form-group input:disabled {
-  background: #f8fafc;
-  color: #64748b;
+  background: rgba(255, 255, 255, 0.5);
+  color: #475569;
 }
 
 .hint {
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.6);
   margin-top: 6px;
   display: block;
 }
@@ -387,19 +407,22 @@ function changePassword() {
 
 .btn-save {
   padding: 12px 22px;
-  background: #0f172a;
+  background: linear-gradient(45deg, #4f46e5, #ec4899);
+  background-size: 200% auto;
   color: #fff;
   border: none;
   border-radius: 14px;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 14px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
-  transition: background 0.15s, transform 0.15s;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.3);
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .btn-save:hover {
-  background: #020617;
+  background-position: right center;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
 }
 
 .btn-save:active {

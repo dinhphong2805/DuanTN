@@ -457,14 +457,21 @@ function addToCart() {
 }
 
 .panel {
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  padding: 18px;
-  background: #fff;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 24px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 16px 48px rgba(31, 38, 135, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.panel:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 60px rgba(79, 70, 229, 0.15);
 }
 
 .brand {
@@ -473,8 +480,13 @@ function addToCart() {
 }
 
 .name {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 800;
+  background: linear-gradient(135deg, #0a0a0a, #4f46e5);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 5s linear infinite;
 }
 
 .meta {
@@ -483,9 +495,12 @@ function addToCart() {
 }
 
 .price {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
   margin-top: 6px;
+  background: linear-gradient(to right, #000, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .size {
@@ -562,23 +577,25 @@ function addToCart() {
   margin-top: 10px;
   width: 100%;
   border: none;
-  border-radius: 2px;
-  padding: 14px 16px;
-  background: #0a0a0a;
+  border-radius: 999px;
+  padding: 16px;
+  background: linear-gradient(45deg, #4f46e5, #ec4899);
+  background-size: 200% auto;
   color: #fff;
   font-family: inherit;
-  font-weight: 700;
-  font-size: 12px;
+  font-weight: 800;
+  font-size: 14px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.25s ease;
+  box-shadow: 0 8px 24px rgba(236, 72, 153, 0.3);
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .cta:hover {
-  background: #1f2937;
-  transform: translateY(-1px);
-  box-shadow: 0 12px 28px -8px rgba(15, 23, 42, 0.35);
+  background-position: right center;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 16px 32px rgba(79, 70, 229, 0.4);
 }
 
 .reviews-section {

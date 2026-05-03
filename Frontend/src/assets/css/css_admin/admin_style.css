@@ -17,3 +17,6 @@
 
 /* 5. Cap do trang (Page header, KPI cards, Section cards...) */
 @import url('./pages.css');
+
+/* 6. Global design system + Bootstrap conflict overrides */
+@import url('./admin_global.css');

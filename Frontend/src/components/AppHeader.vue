@@ -1,5 +1,20 @@
 <template>
   <div class="header-wrap">
+    <!-- Thanh Promo Bar dùng chung với hiệu ứng chạy chữ -->
+    <div class="irun-promo-bar">
+      <div class="marquee-track">
+        <div class="marquee-content">
+          Miễn phí giao từ 3.000.000₫ &nbsp;&nbsp;·&nbsp;&nbsp; Đổi trả trong 14 ngày &nbsp;&nbsp;·&nbsp;&nbsp; Thanh toán an toàn
+        </div>
+        <div class="marquee-content" aria-hidden="true">
+          Miễn phí giao từ 3.000.000₫ &nbsp;&nbsp;·&nbsp;&nbsp; Đổi trả trong 14 ngày &nbsp;&nbsp;·&nbsp;&nbsp; Thanh toán an toàn
+        </div>
+        <div class="marquee-content" aria-hidden="true">
+          Miễn phí giao từ 3.000.000₫ &nbsp;&nbsp;·&nbsp;&nbsp; Đổi trả trong 14 ngày &nbsp;&nbsp;·&nbsp;&nbsp; Thanh toán an toàn
+        </div>
+      </div>
+    </div>
+
     <header class="app-header">
       <div class="header-logo" @click="$router.push('/')">
         <span class="brand">Kesn Store</span>
@@ -154,8 +169,47 @@ function submitSearch() {
 .header-wrap {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-color: #ffffff;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  transition: all 0.3s ease;
+}
+
+.irun-promo-bar {
+  background: #111827;
+  color: #f9fafb;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 10px 0;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.marquee-track {
+  display: flex;
+  white-space: nowrap;
+  animation: scrollMarquee 20s linear infinite;
+  width: max-content;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.marquee-content {
+  padding-right: 50px;
+}
+
+@keyframes scrollMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.3333%); }
 }
 
 .app-header {
@@ -192,35 +246,26 @@ function submitSearch() {
 .nav-text {
   background: none;
   border: none;
-  padding: 8px 0;
+  padding: 10px 16px;
+  border-radius: 999px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: #4b5563;
   cursor: pointer;
-  transition: color 0.22s ease;
+  transition: all 0.25s ease;
   position: relative;
 }
 
 .nav-text:hover {
   color: #0a0a0a;
+  background: rgba(17, 24, 39, 0.04);
 }
 
 .nav-text.active {
   color: #0a0a0a;
-  font-weight: 700;
-}
-
-.nav-text.active::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  background: #111827;
-  border-radius: 0;
+  background: rgba(17, 24, 39, 0.06);
 }
 
 .header-actions {
