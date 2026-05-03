@@ -10,16 +10,12 @@ public class VNPAYConfig {
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     
     // 2. URL nhận kết quả (Phải khớp với Route bên Vue của bạn)
-    // Lưu ý: đặt biến môi trường để tránh hard-code theo máy.
     public static String vnp_ReturnUrl = env("VNPAY_RETURN_URL", "http://localhost:5173/payment-return");
     
-    // 3. Thông tin terminal Sandbox (KHÔNG nên hard-code trong code).
-    // - VNPAY_TMN_CODE: Terminal merchant code
-    // - VNPAY_HASH_SECRET: Hash secret tương ứng
-    //
-    // Nếu bạn chưa set các biến này, hệ thống sẽ báo lỗi khi tạo link thanh toán.
-    public static String vnp_TmnCode = env("VNPAY_TMN_CODE", "");
-    public static String vnp_HashSecret = env("VNPAY_HASH_SECRET", "");
+    // 3. Thông tin terminal Sandbox
+    // Đã điền thông tin WV64SLHU và ADAAHH778O6BR46T0UNQ6HTHDMUZDMIZ vào giá trị mặc định (defaultValue)
+    public static String vnp_TmnCode = env("VNPAY_TMN_CODE", "WV64SLHU");
+    public static String vnp_HashSecret = env("VNPAY_HASH_SECRET", "ADAAHH778O6BR46T0UNQ6HTHDMUZDMIZ");
 
     // 4. Các thông số phiên bản
     public static String vnp_Version = "2.1.0";
