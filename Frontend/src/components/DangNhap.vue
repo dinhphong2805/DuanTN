@@ -229,20 +229,24 @@ export default {
   position: relative;
   width: 100%;
   display: block;
+  isolation: isolate; /* tách lớp vẽ: icon/toggle so với nền input */
 }
 
+/* Icon đứng TRƯỚC input trong DOM — nền input full width sẽ che icon nếu không tách z-index */
 .input-field__icon {
   position: absolute;
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 2;
+  z-index: 3;
   color: #9ca3af;
   font-size: 1rem;
   pointer-events: none;
 }
 
 .input-field__control {
+  position: relative;
+  z-index: 1;
   width: 100%;
   padding: 0.75rem 2.75rem 0.75rem 2.65rem;
   border: 1px solid #e5e7eb;
@@ -266,7 +270,7 @@ export default {
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 2;
+  z-index: 3;
   padding: 6px;
   border: none;
   background: transparent;
