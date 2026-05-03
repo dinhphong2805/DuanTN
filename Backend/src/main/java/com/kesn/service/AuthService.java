@@ -3,6 +3,7 @@ package com.kesn.service;
 import com.kesn.dto.*;
 import com.kesn.entity.User;
 import com.kesn.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,15 +18,21 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final com.kesn.repository.VoucherRepository voucherRepository;
     private final com.kesn.repository.UserVoucherRepository userVoucherRepository;
+
+    /** Chi co khi da cau hinh spring.mail.host (VD Gmail SMTP + App Password). */
+    private final PasswordResetMailService passwordResetMailService;
+
     private static final Random RANDOM = new Random();
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        com.kesn.repository.VoucherRepository voucherRepository,
-                       com.kesn.repository.UserVoucherRepository userVoucherRepository) {
+                       com.kesn.repository.UserVoucherRepository userVoucherRepository,
+                       @Autowired(required = false) PasswordResetMailService passwordResetMailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.voucherRepository = voucherRepository;
         this.userVoucherRepository = userVoucherRepository;
+        this.passwordResetMailService = passwordResetMailService;
     }
 
     public LoginResponse login(LoginRequest req) {
@@ -84,9 +91,14 @@ public class AuthService {
         user.setResetCode(code);
         user.setResetCodeExpiresAt(Instant.now().plusSeconds(15 * 60)); // 15 phút
         userRepository.save(user);
-        // TODO: Gửi email. Hiện tại log ra console để test
+
+        if (passwordResetMailService != null) {
+            passwordResetMailService.sendResetCode(req.getEmail(), code);
+            return new MessageResponse("Mã xác nhận đã gửi tới email của bạn. Kiểm tra hộp thư (kể cả thư rác).");
+        }
         System.out.println(">>> Reset code cho " + req.getEmail() + ": " + code);
-        return new MessageResponse("Mã xác nhận đã gửi tới email của bạn. Kiểm tra hộp thư (hoặc console backend để test).");
+        return new MessageResponse(
+                "Chua cau hinh SMTP (spring.mail.*). Ma xac nhan (dev): " + code + " — Xem console backend.");
     }
 
     public MessageResponse resetPassword(ResetPasswordRequest req) {

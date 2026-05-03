@@ -22,7 +22,13 @@
         <h3>Theo dõi</h3>
         <ul>
           <li><a href="#" @click.prevent>Instagram</a></li>
-          <li><a href="#" @click.prevent>Facebook</a></li>
+          <li>
+            <a
+              href="https://web.facebook.com/profile.php?id=61588954481444"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Facebook</a>
+          </li>
           <li><a href="#" @click.prevent>Telegram</a></li>
         </ul>
       </div>

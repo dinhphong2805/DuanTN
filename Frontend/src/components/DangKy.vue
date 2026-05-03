@@ -125,7 +125,6 @@
 </template>
 
 <script>
-import { useAuthStore } from '../authStore'
 import { register } from '../api/services/authService'
 
 export default {
@@ -157,14 +156,16 @@ export default {
       this.error = null
       this.loading = true
       try {
-        const { user, token } = await register({
+        await register({
           email: this.email,
           fullName: this.fullName,
           password: this.password,
           phone: this.phone,
         })
-        useAuthStore().login(user, token)
-        this.$router.push('/')
+        this.$router.push({
+          path: '/login',
+          query: { registered: '1', email: this.email },
+        })
       } catch (e) {
         this.error = e.response?.data?.message || e.message || 'Đăng ký thất bại'
       } finally {

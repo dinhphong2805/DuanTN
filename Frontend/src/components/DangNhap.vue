@@ -10,21 +10,47 @@
         <h1 class="brand-name">KESN STORE</h1>
         <p class="brand-tagline">SNEAKERS COLLECTION</p>
 
+        <p v-if="registerSuccess" class="alert alert-success small mb-3 rounded-3 py-2 px-3">
+          Đăng ký thành công. Vui lòng đăng nhập.
+        </p>
+
         <form @submit.prevent="handleLogin" class="auth-form">
-          <div class="input-group">
-            <label class="form-label fw-bold text-secondary small">Email</label>
-            <div class="input-field position-relative">
-              <i class="bi bi-envelope icon position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
-              <input type="email" v-model="email" class="form-control ps-5 py-2 rounded-3 border-light-subtle" placeholder="Nhập email của bạn" required />
+          <div class="auth-field">
+            <label class="auth-label" for="login-email">Email</label>
+            <div class="input-field">
+              <i class="bi bi-envelope input-field__icon" aria-hidden="true"></i>
+              <input
+                id="login-email"
+                type="email"
+                v-model="email"
+                class="form-control input-field__control"
+                placeholder="Nhập email của bạn"
+                autocomplete="username"
+                required
+              />
             </div>
           </div>
 
-          <div class="input-group">
-            <label class="form-label fw-bold text-secondary small">Mật khẩu</label>
-            <div class="input-field position-relative">
-              <i class="bi bi-lock icon position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
-              <input :type="showPassword ? 'text' : 'password'" v-model="password" class="form-control ps-5 py-2 rounded-3 border-light-subtle" placeholder="••••••••" required />
-              <button type="button" @click="showPassword = !showPassword" class="btn btn-link link-secondary position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0 shadow-none">
+          <div class="auth-field">
+            <label class="auth-label" for="login-password">Mật khẩu</label>
+            <div class="input-field">
+              <i class="bi bi-lock input-field__icon" aria-hidden="true"></i>
+              <input
+                id="login-password"
+                :type="showPassword ? 'text' : 'password'"
+                v-model="password"
+                class="form-control input-field__control"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="input-field__toggle"
+                :aria-pressed="showPassword"
+                aria-label="Hiện hoặc ẩn mật khẩu"
+              >
                 <i class="bi" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
               </button>
             </div>
@@ -72,7 +98,15 @@ export default {
       remember: false,
       showPassword: false,
       loading: false,
+      registerSuccess: false,
     };
+  },
+  mounted() {
+    if (this.$route.query.registered === '1') {
+      this.registerSuccess = true
+      const q = this.$route.query.email
+      if (typeof q === 'string' && q) this.email = q
+    }
   },
   methods: {
     async handleLogin() {
@@ -166,42 +200,84 @@ export default {
   text-transform: uppercase;
 }
 
-/* INPUTS */
-.input-group { text-align: left; margin-bottom: 22px; }
-.input-group label { 
-  display: block; 
-  font-size: 0.75rem; 
-  font-weight: 700; 
-  margin-bottom: 8px; 
-  color: #666; 
+/* INPUTS — dùng .auth-field thay vì .input-group (tránh xung đột Bootstrap flex) */
+.auth-form {
+  text-align: left;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+.auth-label {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #666;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .input-field {
   position: relative;
-  display: flex;
-  align-items: center;
-}
-.input-field .icon {
-  position: absolute;
-  left: 15px;
-  color: #ccc;
-  font-size: 1rem;
-}
-.input-field input {
   width: 100%;
-  padding: 14px 15px 14px 45px;
-  border: 1px solid #eee;
+  display: block;
+}
+
+.input-field__icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  color: #9ca3af;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.input-field__control {
+  width: 100%;
+  padding: 0.75rem 2.75rem 0.75rem 2.65rem;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
-  background: #fcfcfc;
+  background: #f9fafb;
   font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   outline: none;
-  transition: 0.3s;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  box-sizing: border-box;
 }
-.input-field input:focus { border-color: #000; background: #fff; }
 
-.toggle-password { position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #bbb;}
+.input-field__control:focus {
+  border-color: #111827;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+}
+
+.input-field__toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  padding: 6px;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.input-field__toggle:hover {
+  color: #374151;
+}
 
 /* OPTIONS */
 .form-options { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 30px; }

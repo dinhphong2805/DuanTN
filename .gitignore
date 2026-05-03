@@ -6,6 +6,9 @@ Backend/.classpath
 Backend/.project
 Backend/.settings/
 
+# Secrets — không commit (Gemini key, Gmail App Password, …)
+Backend/src/main/resources/application-local.properties
+
 # Ảnh upload local
 Backend/uploads/
 

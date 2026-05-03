@@ -63,7 +63,7 @@ export default {
       try {
         const res = await forgotPassword(this.email)
         this.success = true
-        this.successMsg = res.message || "Mã xác nhận đã gửi. Kiểm tra console backend (hoặc email khi có cấu hình)."
+        this.successMsg = res.message || "Mã xác nhận đã gửi. Kiểm tra email (kể cả thư rác)."
       } catch (e) {
         this.error = e.response?.data?.message || e.message || 'Có lỗi xảy ra'
       } finally {
