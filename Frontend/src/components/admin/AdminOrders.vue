@@ -68,7 +68,7 @@
             v-model="searchQuery"
             type="search"
             class="orders-search-input"
-            placeholder="Tìm mã đơn, khách hàng..."
+            placeholder="Tìm mã đơn, khách hàng, sản phẩm..."
             autocomplete="off"
           />
         </div>
@@ -416,7 +416,11 @@ const filteredSorted = computed(() => {
       const name = (o.customerName || '').toLowerCase()
       const email = (o.customerEmail || '').toLowerCase()
       const phone = (o.customerPhone || '').toLowerCase()
-      return id.includes(q) || name.includes(q) || email.includes(q) || phone.includes(q)
+      // Tìm kiếm trong tên sản phẩm
+      const productMatch = (o.items || []).some((item) =>
+        (item.productName || '').toLowerCase().includes(q)
+      )
+      return id.includes(q) || name.includes(q) || email.includes(q) || phone.includes(q) || productMatch
     })
   }
   if (statusFilter.value !== 'all') {

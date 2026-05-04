@@ -409,7 +409,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 20px 20px 0 0;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   background: linear-gradient(145deg, #f3f4f6, #fafafa);
 }
 
