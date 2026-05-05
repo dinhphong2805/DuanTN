@@ -116,16 +116,24 @@
           <h2 class="summary-title">Tóm tắt</h2>
 
           <div class="voucher-row">
-            <select
-              v-model="selectedVoucherCode"
-              class="voucher-input"
-              @change="applyVoucher"
-            >
-              <option value="">-- Chọn mã giảm giá --</option>
-              <option v-for="v in myVouchers" :key="v.id" :value="v.code">
-                {{ v.code }} (Giảm {{ v.type === 'fixed' ? formatMoney(v.discount) : v.discount + '%' }})
-              </option>
-            </select>
+            <div class="voucher-input-wrapper">
+              <input
+                v-model="voucherInput"
+                type="text"
+                class="voucher-input"
+                placeholder="Nhập hoặc chọn mã giảm giá..."
+                @focus="showVoucherDropdown = true"
+                @input="handleVoucherInput"
+                @blur="handleVoucherBlur"
+                @keydown.enter="applyVoucher"
+              />
+              <ul v-if="showVoucherDropdown && filteredVoucherList.length > 0" class="voucher-dropdown">
+                <li v-for="v in filteredVoucherList" :key="v.id" @mousedown="selectFromList(v)">
+                  <span class="code">{{ v.code }}</span>
+                  <span class="discount">Giảm {{ v.type === 'fixed' ? formatMoney(v.discount) : v.discount + '%' }}</span>
+                </li>
+              </ul>
+            </div>
             <button v-if="appliedVoucher" type="button" class="btn-clear-voucher" @click="removeVoucher">
               ✕
             </button>
@@ -175,13 +183,21 @@ const cart = useCart()
 const voucherStore = useVoucherStore()
 
 const myVouchers = ref([])
-const selectedVoucherCode = ref(voucherStore.voucherCode || '')
+const voucherInput = ref(voucherStore.voucherCode || '')
+const showVoucherDropdown = ref(false)
 
 const voucherLoading = ref(false)
 const voucherError = ref('')
 
 const appliedVoucher = computed(() => voucherStore.appliedVoucher)
 const voucherAmount = computed(() => voucherStore.discountAmount)
+
+// Lọc danh sách vouchers theo input
+const filteredVoucherList = computed(() => {
+  const input = voucherInput.value.toUpperCase().trim()
+  if (!input) return myVouchers.value
+  return myVouchers.value.filter(v => v.code.toUpperCase().includes(input))
+})
 
 onMounted(async () => {
   const userId = resolveSessionUserId()
@@ -194,14 +210,14 @@ onMounted(async () => {
   }
   
   // Re-validate store voucher on mount if total applies
-  if (selectedVoucherCode.value) {
+  if (voucherInput.value) {
     applyVoucher()
   }
 })
 
 watch(() => cart.state.items, () => {
     // If cart changed, validate again
-    if (selectedVoucherCode.value) {
+    if (voucherInput.value) {
         applyVoucher()
     }
 }, { deep: true })
@@ -271,13 +287,30 @@ function onQtyChange(key, e) {
 }
 
 function removeVoucher() {
-    selectedVoucherCode.value = ''
+    voucherInput.value = ''
     voucherStore.clearVoucher()
     voucherError.value = ''
 }
 
+function handleVoucherInput(e) {
+  showVoucherDropdown.value = true
+}
+
+function handleVoucherBlur() {
+  // Delay để cho phép click vào dropdown item
+  setTimeout(() => {
+    showVoucherDropdown.value = false
+  }, 200)
+}
+
+function selectFromList(voucher) {
+  voucherInput.value = voucher.code
+  showVoucherDropdown.value = false
+  applyVoucher()
+}
+
 async function applyVoucher() {
-  const code = selectedVoucherCode.value?.trim()
+  const code = voucherInput.value?.trim()
   if (!code) {
       voucherStore.clearVoucher()
       return
@@ -761,9 +794,14 @@ async function applyVoucher() {
   gap: 10px;
 }
 
-.voucher-input {
+.voucher-input-wrapper {
   flex: 1;
   min-width: 0;
+  position: relative;
+}
+
+.voucher-input {
+  width: 100%;
   padding: 12px 14px;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
@@ -778,6 +816,49 @@ async function applyVoucher() {
   border-color: var(--cp-ink);
   background: #fff;
   box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
+}
+
+.voucher-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 6px 0;
+  list-style: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.voucher-dropdown li {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s;
+}
+
+.voucher-dropdown li:hover {
+  background: #f3f4f6;
+}
+
+.voucher-dropdown li .code {
+  font-weight: 600;
+  color: var(--cp-ink);
+  font-family: monospace;
+}
+
+.voucher-dropdown li .discount {
+  font-size: 12px;
+  color: #ef4444;
+  font-weight: 600;
 }
 
 .btn-apply {

@@ -151,6 +151,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import Swal from 'sweetalert2'
 import { useAuthStore } from '../../authStore'
 import {
   createImportReceipt,
@@ -308,12 +309,35 @@ async function save() {
 }
 
 async function removeReceipt(row) {
-  if (!confirm(`Xóa phiếu nhập ${row.code}? Tồn kho sẽ bị trừ lại.`)) return
+  const result = await Swal.fire({
+    title: 'Xóa phiếu nhập?',
+    text: `Bạn có chắc muốn xóa phiếu "${row.code}"? Số lượng tồn kho sẽ bị trừ lại.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e11d48',
+    cancelButtonColor: '#94a3b8',
+    confirmButtonText: 'Có, xóa ngay!',
+    cancelButtonText: 'Hủy bỏ'
+  })
+
+  if (!result.isConfirmed) return
   try {
     await deleteImportReceipt(row.id)
+    Swal.fire({
+      title: 'Đã xóa!',
+      text: 'Phiếu nhập đã được xóa thành công.',
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false
+    })
     await Promise.all([load(), loadProducts()])
   } catch (e) {
-    alert(e?.response?.data?.message || 'Không thể xóa phiếu nhập.')
+    Swal.fire({
+      title: 'Lỗi',
+      text: e?.response?.data?.message || 'Không thể xóa phiếu nhập.',
+      icon: 'error',
+      confirmButtonColor: '#4f46e5'
+    })
   }
 }
 

@@ -126,6 +126,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import Swal from 'sweetalert2'
 import { getVouchers, createVoucher, deleteVoucher, updateVoucher } from '../../api/services/adminService'
 
 const vouchers = ref([])
@@ -216,9 +217,26 @@ async function saveVoucher() {
   }
 }
 
-function confirmDelete(v) {
-  if (!confirm(`Xóa mã "${v.code}"?`)) return
-  deleteVoucher(v.id).then(() => load()).catch(() => alert('Không thể xóa'))
+async function confirmDelete(v) {
+  const result = await Swal.fire({
+    title: 'Xóa mã giảm giá?',
+    text: `Bạn có chắc chắn muốn xóa mã "${v.code}"?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e11d48',
+    cancelButtonColor: '#94a3b8',
+    confirmButtonText: 'Có, xóa!',
+    cancelButtonText: 'Hủy'
+  })
+
+  if (result.isConfirmed) {
+    deleteVoucher(v.id)
+      .then(() => {
+        Swal.fire({ title: 'Thành công!', text: 'Mã giảm giá đã bị xóa.', icon: 'success', timer: 1500, showConfirmButton: false })
+        load()
+      })
+      .catch(() => Swal.fire({ title: 'Lỗi!', text: 'Không thể xóa mã giảm giá', icon: 'error', confirmButtonColor: '#4f46e5' }))
+  }
 }
 
 onMounted(load)

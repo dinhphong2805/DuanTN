@@ -29,14 +29,29 @@
         >
           Trang chủ
         </button>
-        <button
-          type="button"
-          class="nav-text"
-          :class="{ active: $route.path === '/product' }"
-          @click="$router.push('/product')"
-        >
-          Sản phẩm
-        </button>
+        <div class="nav-item-dropdown" @mouseenter="hoverProduct = true" @mouseleave="hoverProduct = false">
+          <button
+            type="button"
+            class="nav-text"
+            :class="{ active: $route.path === '/product' }"
+            @click="$router.push('/product')"
+          >
+            Sản phẩm
+          </button>
+          
+          <Transition name="fade-down">
+            <div class="dropdown-menu" v-show="hoverProduct">
+              <button 
+                v-for="brand in brandList" 
+                :key="brand" 
+                class="dropdown-item" 
+                @click="goToBrand(brand)"
+              >
+                {{ brand }}
+              </button>
+            </div>
+          </Transition>
+        </div>
         <button
           type="button"
           class="nav-text"
@@ -124,10 +139,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../authStore'
 import { useCart } from '../cartStore'
+import { getProductsFromApi } from '../api/services/productService'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -136,6 +152,14 @@ const cart = useCart()
 const searchKeyword = ref('')
 const searchOpen = ref(false)
 const searchInputRef = ref(null)
+
+const hoverProduct = ref(false)
+const headerProducts = ref([])
+
+const brandList = computed(() => {
+  const b = headerProducts.value.map(p => (p.brand || '').trim()).filter(Boolean)
+  return [...new Set(b)].sort()
+})
 
 const cartCount = computed(() =>
   cart.state.items.reduce((n, it) => n + (Number(it.quantity) || 0), 0)
@@ -161,6 +185,19 @@ function submitSearch() {
   searchOpen.value = false
   router.push({ path: '/product', query: q ? { search: q } : {} })
 }
+
+function goToBrand(brand) {
+  hoverProduct.value = false
+  router.push({ path: '/product', query: { brand } })
+}
+
+onMounted(async () => {
+  try {
+    headerProducts.value = await getProductsFromApi()
+  } catch (e) {
+    console.error('Lỗi khi tải danh sách sản phẩm ở header', e)
+  }
+})
 </script>
 
 <style scoped>
@@ -266,6 +303,74 @@ function submitSearch() {
 .nav-text.active {
   color: #0a0a0a;
   background: rgba(17, 24, 39, 0.06);
+}
+
+.nav-item-dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.1);
+  padding: 8px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+}
+
+.dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border-left: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dropdown-item {
+  background: none;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.dropdown-item:hover {
+  background: #f3f4f6;
+  color: #0a0a0a;
+  padding-left: 20px;
+}
+
+.fade-down-enter-active,
+.fade-down-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.fade-down-enter-from,
+.fade-down-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -10px);
 }
 
 .header-actions {

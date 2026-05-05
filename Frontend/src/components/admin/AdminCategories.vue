@@ -67,6 +67,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import Swal from 'sweetalert2'
 import client from '../../api/client'
 
 const categories = ref([])
@@ -131,12 +132,36 @@ async function saveCategory() {
 }
 
 async function confirmDelete(c) {
-  if (!confirm(`Xóa danh mục "${c.name}"?`)) return
+  const result = await Swal.fire({
+    title: 'Xóa danh mục?',
+    text: `Bạn có chắc muốn xóa "${c.name}"? Hành động này không thể hoàn tác.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e11d48',
+    cancelButtonColor: '#94a3b8',
+    confirmButtonText: 'Có, xóa ngay!',
+    cancelButtonText: 'Hủy bỏ'
+  })
+  
+  if (!result.isConfirmed) return
+  
   try {
     await client.delete(`/admin/categories/${c.id}`)
+    Swal.fire({
+      title: 'Đã xóa!',
+      text: 'Danh mục đã được xóa thành công.',
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false
+    })
     await fetchCategories()
   } catch (err) {
-    alert(err.response?.data?.message || 'Không thể xóa danh mục')
+    Swal.fire({
+      title: 'Lỗi',
+      text: err.response?.data?.message || 'Không thể xóa danh mục',
+      icon: 'error',
+      confirmButtonColor: '#4f46e5'
+    })
   }
 }
 

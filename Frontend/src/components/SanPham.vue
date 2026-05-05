@@ -1,6 +1,6 @@
 <template>
   <div class="search-page">
-    
+
 
     <header class="search-hero">
       <div class="search-hero-inner">
@@ -22,46 +22,38 @@
         <div class="filters-card">
           <div class="filters-card-head">
             <p class="filters-card-title">Bộ lọc</p>
-            <button
-              v-if="hasActiveFilters"
-              type="button"
-              class="filters-reset"
-              @click="clearFilters"
-            >
+            <button v-if="hasActiveFilters" type="button" class="filters-reset" @click="clearFilters">
               Xóa lọc
             </button>
           </div>
           <div class="filter-group">
             <label class="filter-label" for="filter-sport">Thể thao</label>
             <select id="filter-sport" v-model="filterTheThao" class="filter-select">
-            <option value="">Tất cả</option>
-            <option value="Basketball">Basketball</option>
-            <option value="Đá banh">Đá banh</option>
-            <option value="Bóng bầu dục">Bóng bầu dục</option>
-            <option value="Gym">Gym</option>
-            <option value="Các loại khác">Các loại khác</option>
+              <option value="">Tất cả</option>
+              <option value="Basketball">Basketball</option>
+              <option value="Đá banh">Đá banh</option>
+              <option value="Bóng bầu dục">Bóng bầu dục</option>
+              <option value="Gym">Gym</option>
+              <option value="Các loại khác">Các loại khác</option>
             </select>
           </div>
 
           <div class="filter-group">
-            <label class="filter-label" for="filter-price">Chọn khoảng giá</label>
-            <select id="filter-price" v-model="filterGia" class="filter-select">
-            <option value="">Tất cả</option>
-            <option value="0-1000000">Dưới 1.000.000 VNĐ</option>
-            <option value="1000000-3000000">1.000.000 – 3.000.000 VNĐ</option>
-            <option value="3000000-999999999">Trên 3.000.000 VNĐ</option>
-            </select>
+            <label class="filter-label">Khoảng giá (VNĐ)</label>
+            <div class="filter-price-range">
+              <input id="filter-price-min" v-model.number="filterMinPrice" type="number" min="0" placeholder="Từ"
+                class="filter-price-input" />
+              <span class="filter-price-sep">–</span>
+              <input id="filter-price-max" v-model.number="filterMaxPrice" type="number" min="0" placeholder="Đến"
+                class="filter-price-input" />
+            </div>
           </div>
 
           <div class="filter-group">
             <label class="filter-label" for="filter-brand">Thương hiệu</label>
             <select id="filter-brand" v-model="filterThuongHieu" class="filter-select">
-            <option value="">Tất cả</option>
-            <option value="Nike">Nike</option>
-            <option value="Adidas">Adidas</option>
-            <option value="Balenciaga">Balenciaga</option>
-            <option value="Stussy">Stussy</option>
-            <option value="Cross">Cross</option>
+              <option value="">Tất cả</option>
+              <option v-for="brand in uniqueBrands" :key="brand" :value="brand">{{ brand }}</option>
             </select>
           </div>
         </div>
@@ -76,13 +68,8 @@
                 <path d="M21 21l-4.35-4.35" />
               </svg>
             </span>
-            <input
-              v-model="filterSearch"
-              type="search"
-              placeholder="Tìm theo tên, thương hiệu, danh mục..."
-              class="search-input"
-              autocomplete="off"
-            />
+            <input v-model="filterSearch" type="search" placeholder="Tìm theo tên, thương hiệu, danh mục..."
+              class="search-input" autocomplete="off" />
           </div>
           <div class="results-heading-row">
             <div class="results-heading-left">
@@ -111,31 +98,13 @@
           <button type="button" class="results-empty-btn" @click="clearFilters">Xóa bộ lọc</button>
         </div>
         <div v-else class="results-grid">
-          <article
-            v-for="item in displayedProducts"
-            :key="item.id"
-            class="product-card"
-            tabindex="0"
-            role="link"
-            @click="goProduct(item.id)"
-            @keydown.enter="goProduct(item.id)"
-          >
+          <article v-for="item in displayedProducts" :key="item.id" class="product-card" tabindex="0" role="link"
+            @click="goProduct(item.id)" @keydown.enter="goProduct(item.id)">
             <div class="product-card-media">
-              <img
-                :src="item.image || PLACEHOLDER_IMG"
-                :alt="item.name"
-                class="product-image primary"
-                loading="lazy"
-                @error="$event.target.src = PLACEHOLDER_IMG"
-              />
-              <img
-                v-if="item.image2"
-                :src="item.image2"
-                :alt="item.name"
-                class="product-image secondary"
-                loading="lazy"
-                @error="$event.target.style.display = 'none'"
-              />
+              <img :src="item.image || PLACEHOLDER_IMG" :alt="item.name" class="product-image primary" loading="lazy"
+                @error="$event.target.src = PLACEHOLDER_IMG" />
+              <img v-if="item.image2" :src="item.image2" :alt="item.name" class="product-image secondary" loading="lazy"
+                @error="$event.target.style.display = 'none'" />
               <div class="product-card-overlay" aria-hidden="true">
                 <span class="product-card-cta">Xem chi tiết</span>
               </div>
@@ -150,21 +119,11 @@
         </div>
 
         <div v-if="totalPages > 1" class="pagination-wrap">
-          <button 
-            type="button" 
-            class="pagination-btn" 
-            :disabled="currentPage === 1"
-            @click="currentPage--"
-          >
+          <button type="button" class="pagination-btn" :disabled="currentPage === 1" @click="currentPage--">
             Trang trước
           </button>
           <span class="pagination-info">Trang {{ currentPage }} / {{ totalPages }}</span>
-          <button 
-            type="button" 
-            class="pagination-btn" 
-            :disabled="currentPage === totalPages"
-            @click="currentPage++"
-          >
+          <button type="button" class="pagination-btn" :disabled="currentPage === totalPages" @click="currentPage++">
             Trang sau
           </button>
         </div>
@@ -175,31 +134,13 @@
             <p class="recommend-desc">Các mẫu khác trong danh sách của bạn</p>
           </div>
           <div class="recommend-grid">
-            <article
-              v-for="item in recommendations"
-              :key="'rec-' + item.id"
-              class="product-card"
-              tabindex="0"
-              role="link"
-              @click="goProduct(item.id)"
-              @keydown.enter="goProduct(item.id)"
-            >
+            <article v-for="item in recommendations" :key="'rec-' + item.id" class="product-card" tabindex="0"
+              role="link" @click="goProduct(item.id)" @keydown.enter="goProduct(item.id)">
               <div class="product-card-media">
-                <img
-                  :src="item.image || PLACEHOLDER_IMG"
-                  :alt="item.name"
-                  class="product-image primary"
-                  loading="lazy"
-                  @error="$event.target.src = PLACEHOLDER_IMG"
-                />
-                <img
-                  v-if="item.image2"
-                  :src="item.image2"
-                  :alt="item.name"
-                  class="product-image secondary"
-                  loading="lazy"
-                  @error="$event.target.style.display = 'none'"
-                />
+                <img :src="item.image || PLACEHOLDER_IMG" :alt="item.name" class="product-image primary" loading="lazy"
+                  @error="$event.target.src = PLACEHOLDER_IMG" />
+                <img v-if="item.image2" :src="item.image2" :alt="item.name" class="product-image secondary"
+                  loading="lazy" @error="$event.target.style.display = 'none'" />
                 <div class="product-card-overlay" aria-hidden="true">
                   <span class="product-card-cta">Xem chi tiết</span>
                 </div>
@@ -234,7 +175,8 @@ const loading = ref(true)
 const loadError = ref('')
 const productsRaw = ref([])
 const filterTheThao = ref('')
-const filterGia = ref('')
+const filterMinPrice = ref(null)
+const filterMaxPrice = ref(null)
 const filterThuongHieu = ref('')
 const filterSearch = ref('')
 const sortBy = ref('default')
@@ -243,8 +185,16 @@ const sortBy = ref('default')
 const currentPage = ref(1)
 const itemsPerPage = ref(12)
 
-watch([filterTheThao, filterGia, filterThuongHieu, filterSearch, sortBy], () => {
+watch([filterTheThao, filterMinPrice, filterMaxPrice, filterThuongHieu, filterSearch, sortBy], () => {
   currentPage.value = 1
+})
+
+// Danh sách thương hiệu động từ dữ liệu thực
+const uniqueBrands = computed(() => {
+  const brands = productsRaw.value
+    .map((p) => (p.brand || '').trim())
+    .filter(Boolean)
+  return [...new Set(brands)].sort()
 })
 
 function toDisplayUrl(url) {
@@ -267,7 +217,7 @@ function parseImageUrls(raw) {
     try {
       const arr = JSON.parse(txt)
       if (Array.isArray(arr)) return arr.filter(Boolean).map(String)
-    } catch {}
+    } catch { }
   }
   if (txt.includes('|')) return txt.split('|').map(s => s.trim()).filter(Boolean)
   return [txt]
@@ -308,12 +258,11 @@ const results = computed(() => {
   if (filterTheThao.value) {
     list = list.filter((p) => (p.category || '').trim() === filterTheThao.value)
   }
-  if (filterGia.value) {
-    const [min, max] = filterGia.value.split('-').map(Number)
-    list = list.filter((p) => {
-      const price = Number(p.price) || 0
-      return price >= min && price <= max
-    })
+  if (filterMinPrice.value !== null && filterMinPrice.value !== '') {
+    list = list.filter((p) => (Number(p.price) || 0) >= Number(filterMinPrice.value))
+  }
+  if (filterMaxPrice.value !== null && filterMaxPrice.value !== '') {
+    list = list.filter((p) => (Number(p.price) || 0) <= Number(filterMaxPrice.value))
   }
   if (filterThuongHieu.value) {
     list = list.filter((p) => (p.brand || '').trim() === filterThuongHieu.value)
@@ -361,12 +310,13 @@ const recommendations = computed(() => {
 
 const hasActiveFilters = computed(
   () =>
-    !!(filterTheThao.value || filterGia.value || filterThuongHieu.value || filterSearch.value.trim())
+    !!(filterTheThao.value || filterMinPrice.value || filterMaxPrice.value || filterThuongHieu.value || filterSearch.value.trim())
 )
 
 function clearFilters() {
   filterTheThao.value = ''
-  filterGia.value = ''
+  filterMinPrice.value = null
+  filterMaxPrice.value = null
   filterThuongHieu.value = ''
   filterSearch.value = ''
 }
@@ -399,5 +349,3 @@ onMounted(() => {
 </script>
 
 <style src="../assets/css/product.css" scoped></style>
-
-

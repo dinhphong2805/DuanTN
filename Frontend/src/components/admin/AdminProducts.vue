@@ -249,6 +249,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
+import Swal from 'sweetalert2'
 
 /* LƯU Ý: Nếu đường dẫn import này bị lỗi, bro nhớ sửa lại cho khớp với file adminService.js của bro nhé */
 import { getProducts, createProduct, updateProduct, deleteProduct, uploadImage, getBrandNames, getCategories } from '../../adminService'
@@ -459,9 +460,21 @@ async function performDelete() {
   try {
     await deleteProduct(productToDelete.value.id)
     showDeleteModal.value = false
+    Swal.fire({
+      title: 'Đã xóa!',
+      text: 'Sản phẩm đã được xóa thành công.',
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false
+    })
     await load()
   } catch (e) {
-    alert('Không thể xóa sản phẩm: ' + (e?.response?.data?.message || 'Lỗi không xác định'))
+    Swal.fire({
+      title: 'Lỗi',
+      text: 'Không thể xóa sản phẩm: ' + (e?.response?.data?.message || 'Lỗi không xác định'),
+      icon: 'error',
+      confirmButtonColor: '#4f46e5'
+    })
   } finally {
     deleting.value = false
   }

@@ -152,16 +152,24 @@
             
             <div class="p-row">
               <span>Mã giảm giá</span>
-              <select
-                v-model="selectedVoucherCode"
-                class="voucher-select-checkout"
-                @change="applyVoucher"
-              >
-                <option value="">-- Chọn hoặc bỏ mã --</option>
-                <option v-for="v in myVouchers" :key="v.id" :value="v.code">
-                  {{ v.code }} (Giảm {{ v.type === 'fixed' ? formatPrice(v.discount) + 'đ' : v.discount + '%' }})
-                </option>
-              </select>
+              <div class="voucher-input-wrapper-checkout">
+                <input
+                  v-model="voucherInput"
+                  type="text"
+                  class="voucher-select-checkout"
+                  placeholder="Nhập hoặc chọn mã giảm giá..."
+                  @focus="showVoucherDropdown = true"
+                  @input="handleVoucherInput"
+                  @blur="handleVoucherBlur"
+                  @keydown.enter="applyVoucher"
+                />
+                <ul v-if="showVoucherDropdown && filteredVoucherList.length > 0" class="voucher-dropdown-checkout">
+                  <li v-for="v in filteredVoucherList" :key="v.id" @mousedown="selectFromList(v)">
+                    <span class="code">{{ v.code }}</span>
+                    <span class="discount">Giảm {{ v.type === 'fixed' ? formatPrice(v.discount) + 'đ' : v.discount + '%' }}</span>
+                  </li>
+                </ul>
+              </div>
             </div>
             <p v-if="voucherError" style="color: #ef4444; font-size: 13px; text-align: right; margin: -10px 0 10px;">{{ voucherError }}</p>
             <div class="p-row" v-if="voucherAmount > 0">
@@ -207,12 +215,20 @@ const citySearch = ref(''); const districtSearch = ref(''); const wardSearch = r
 
 // Voucher logic
 const myVouchers = ref([])
-const selectedVoucherCode = ref(voucherStore.voucherCode || '')
+const voucherInput = ref(voucherStore.voucherCode || '')
+const showVoucherDropdown = ref(false)
 const voucherLoading = ref(false)
 const voucherError = ref('')
 
 const appliedVoucher = computed(() => voucherStore.appliedVoucher)
 const voucherAmount = computed(() => voucherStore.discountAmount)
+
+// Lọc danh sách vouchers theo input
+const filteredVoucherList = computed(() => {
+  const input = voucherInput.value.toUpperCase().trim()
+  if (!input) return myVouchers.value
+  return myVouchers.value.filter(v => v.code.toUpperCase().includes(input))
+})
 
 const form = reactive({
   fullName: '', phone: '', email: '', address: '', note: '',
@@ -234,7 +250,7 @@ const subtotal = computed(() => cart.state.items.reduce((sum, it) => sum + toNum
 const total = computed(() => Math.max(0, subtotal.value - voucherAmount.value))
 
 watch(() => cart.state.items, () => {
-    if (selectedVoucherCode.value) {
+    if (voucherInput.value) {
         applyVoucher()
     }
 }, { deep: true })
@@ -247,7 +263,7 @@ const openDropdown = (type) => activeDropdown.value = type
 const handleClickOutside = (e) => { if (!e.target.closest('.select-box')) activeDropdown.value = null }
 
 async function applyVoucher() {
-  const code = selectedVoucherCode.value?.trim()
+  const code = voucherInput.value?.trim()
   if (!code) { voucherStore.clearVoucher(); return }
   voucherError.value = ''; voucherLoading.value = true
   const userId = resolveSessionUserId()
@@ -264,7 +280,24 @@ async function applyVoucher() {
 }
 
 function removeVoucher() {
-    selectedVoucherCode.value = ''; voucherStore.clearVoucher(); voucherError.value = ''
+    voucherInput.value = ''; voucherStore.clearVoucher(); voucherError.value = ''
+}
+
+function handleVoucherInput(e) {
+  showVoucherDropdown.value = true
+}
+
+function handleVoucherBlur() {
+  // Delay để cho phép click vào dropdown item
+  setTimeout(() => {
+    showVoucherDropdown.value = false
+  }, 200)
+}
+
+function selectFromList(voucher) {
+  voucherInput.value = voucher.code
+  showVoucherDropdown.value = false
+  applyVoucher()
 }
 
 onMounted(async () => {
@@ -276,7 +309,7 @@ onMounted(async () => {
   if (userId) {
       myVouchers.value = await getMyVouchers(userId)
   }
-  if (selectedVoucherCode.value) applyVoucher()
+  if (voucherInput.value) applyVoucher()
 
   try {
     const res = await fetch('https://esgoo.net/api-tinhthanh/1/0.htm')
@@ -400,17 +433,76 @@ async function placeOrder() {
 
 @media (max-width: 1024px) { .checkout-layout { grid-template-columns: 1fr; } .summary-god-card { position: static; } }
 
+.voucher-input-wrapper-checkout {
+  position: relative;
+  display: flex;
+  flex: 1;
+}
+
 .voucher-select-checkout {
-  max-width: 180px;
-  padding: 6px;
+  flex: 1;
+  max-width: 100%;
+  padding: 6px 10px;
   border: 1px solid rgba(255,255,255,0.3);
   border-radius: 8px;
   font-size: 13px;
   outline: none;
   background-color: transparent;
   color: #fff;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.voucher-select-checkout option {
-  color: #000;
+
+.voucher-select-checkout:focus {
+  border-color: rgba(255,255,255,0.6);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+}
+
+.voucher-select-checkout::placeholder {
+  color: rgba(255,255,255,0.5);
+}
+
+.voucher-dropdown-checkout {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 6px 0;
+  list-style: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  background: #1a1a1a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.voucher-dropdown-checkout li {
+  padding: 6px 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+  font-size: 12px;
+}
+
+.voucher-dropdown-checkout li:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.voucher-dropdown-checkout li .code {
+  font-weight: 600;
+  color: #fff;
+  font-family: monospace;
+}
+
+.voucher-dropdown-checkout li .discount {
+  font-size: 11px;
+  color: #fca5a5;
+  font-weight: 600;
 }
 </style>

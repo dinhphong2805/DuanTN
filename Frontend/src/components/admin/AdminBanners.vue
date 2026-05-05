@@ -203,6 +203,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import Swal from 'sweetalert2'
 import {
   getBanners, createBanner, updateBanner,
   toggleBanner, deleteBanner, uploadImage,
@@ -406,13 +407,36 @@ async function toggleActive(b) {
 }
 
 async function confirmDelete(b) {
-  if (!confirm(`Xóa banner "${b.title}"? Hành động này không thể khôi phục.`)) return
+  const result = await Swal.fire({
+    title: 'Xóa banner?',
+    text: `Bạn có chắc muốn xóa banner "${b.title}"? Hành động này không thể hoàn tác.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e11d48',
+    cancelButtonColor: '#94a3b8',
+    confirmButtonText: 'Có, xóa ngay!',
+    cancelButtonText: 'Hủy bỏ'
+  })
+
+  if (!result.isConfirmed) return
+  
   try {
     await deleteBanner(b.id)
     banners.value = banners.value.filter(x => x.id !== b.id)
-    showToast('Đã xóa banner')
+    Swal.fire({
+      title: 'Đã xóa!',
+      text: 'Banner đã được xóa thành công.',
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false
+    })
   } catch {
-    showToast('Không thể xóa banner', 'err')
+    Swal.fire({
+      title: 'Lỗi',
+      text: 'Không thể xóa banner',
+      icon: 'error',
+      confirmButtonColor: '#4f46e5'
+    })
   }
 }
 

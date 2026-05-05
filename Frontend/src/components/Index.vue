@@ -311,8 +311,36 @@
           </div>
         </header>
 
-        <div class="home-video-banner">
-          <img :src="banner" alt="Banner" />
+        <div class="home-newest-banner">
+          <TransitionGroup name="hero-slide-fade">
+            <div
+              v-for="(item, idx) in newest5Products"
+              v-show="currentNewestIdx === idx"
+              :key="'newest-' + item.id"
+              class="home-newest-slide"
+              @click="goProduct(item.id)"
+            >
+              <img :src="item.image || PLACEHOLDER_IMG" :alt="item.name" class="home-newest-img" />
+              <div class="home-newest-overlay">
+                <div class="home-newest-info">
+                  <p class="home-newest-brand">{{ item.brand || '—' }}</p>
+                  <h3 class="home-newest-name">{{ item.name }}</h3>
+                  <p class="home-newest-price">{{ formatPrice(item.price) }}</p>
+                  <span class="home-newest-btn">Mua ngay <i class="bi bi-arrow-right"></i></span>
+                </div>
+              </div>
+            </div>
+          </TransitionGroup>
+
+          <div class="home-newest-indicators" v-if="newest5Products.length > 1">
+            <span 
+              v-for="(_, idx) in newest5Products" 
+              :key="'ind-'+idx" 
+              class="newest-indicator" 
+              :class="{ active: currentNewestIdx === idx }"
+              @click="currentNewestIdx = idx"
+            ></span>
+          </div>
         </div>
       </section>
 
@@ -453,6 +481,16 @@ const featuredList = computed(() =>
   }))
 )
 
+const newest5Products = computed(() => {
+  return (featuredRaw.value || []).slice(0, 5).map(p => ({
+    id: p.id,
+    image: getPrimaryImage(p.imageUrl),
+    name: p.name,
+    price: p.price,
+    brand: p.brand
+  }))
+})
+
 const featuredPageMaxStart = computed(() =>
   Math.max(0, featuredList.value.length - FEATURED_PER_PAGE)
 )
@@ -520,8 +558,12 @@ const activeBanners = ref([])
 const currentBannerIdx = ref(0)
 let bannerTimer = null
 
+const currentNewestIdx = ref(0)
+let newestTimer = null
+
 onUnmounted(() => {
   if (bannerTimer) clearInterval(bannerTimer)
+  if (newestTimer) clearInterval(newestTimer)
 })
 
 onMounted(async () => {
@@ -531,6 +573,12 @@ onMounted(async () => {
     const list = await getProductsFromApi()
     const sorted = [...(list || [])].sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0))
     featuredRaw.value = sorted
+    
+    if (newest5Products.value.length > 1) {
+      newestTimer = setInterval(() => {
+        currentNewestIdx.value = (currentNewestIdx.value + 1) % newest5Products.value.length
+      }, 3500)
+    }
   } catch (e) {
     featuredError.value = e.response?.data?.message || e.message || 'Không thể tải sản phẩm'
     featuredRaw.value = []
