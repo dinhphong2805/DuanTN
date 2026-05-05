@@ -15,10 +15,7 @@ import java.text.Normalizer;
 @Component
 public class DataLoader implements CommandLineRunner {
 
-    /**
-     * Trùng với thương hiệu dùng trên frontend: trang chủ (Nike, Adidas, Balenciaga),
-     * trang sản phẩm (Nike, Adidas, Stussy, Cross).
-     */
+   
     private static final String[] SEED_BRANDS = {
             "Nike",
             "Adidas",
@@ -27,9 +24,7 @@ public class DataLoader implements CommandLineRunner {
             "Balenciaga",
     };
 
-    /**
-     * Khớp bộ lọc "Thể thao" trên trang Sản phẩm và link danh mục trên trang chủ.
-     */
+    
     private static final String[] SEED_CATEGORIES = {
             "Basketball",
             "Đá banh",

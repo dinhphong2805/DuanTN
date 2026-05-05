@@ -161,7 +161,7 @@
             <strong>{{ formatMoney(total) }}</strong>
           </div>
 
-          <button class="btn-checkout" type="button" @click="$router.push('/checkout')">
+          <button class="btn-checkout" type="button" @click="handleCheckout">
             Thanh toán
           </button>
           <router-link to="/product" class="link-continue">Tiếp tục mua sắm</router-link>
@@ -178,6 +178,10 @@ import { validateVoucher, getMyVouchers } from '../api/services/voucherService'
 import { API_BASE_URL } from '../api/config'
 import { useVoucherStore } from '../voucherStore'
 import { resolveSessionUserId } from '../authStore'
+import { useRouter } from 'vue-router'
+import Swal from 'sweetalert2'
+
+const router = useRouter()
 
 const cart = useCart()
 const voucherStore = useVoucherStore()
@@ -332,6 +336,25 @@ async function applyVoucher() {
   } finally {
     voucherLoading.value = false
   }
+}
+
+function handleCheckout() {
+  const userId = resolveSessionUserId()
+  if (!userId) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Yêu cầu đăng nhập',
+      text: 'Vui lòng đăng nhập để thực hiện thanh toán!',
+      confirmButtonColor: '#000',
+      confirmButtonText: 'Đăng nhập ngay'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        router.push({ path: '/login', query: { redirect: '/checkout' } })
+      }
+    })
+    return
+  }
+  router.push('/checkout')
 }
 </script>
 

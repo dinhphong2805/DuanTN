@@ -40,13 +40,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             return;
         }
 
-        // Tạo Token (Thay thế bằng logic JWT thật của bạn nếu có)
+        // Tạo Token 
         String token = "jwt-token-" + user.getId();
         
-        // Lấy fullName, xử lý tránh null
+        // Lấy fullName xử lý tránh null
         String fullName = user.getFullName() != null ? user.getFullName() : "";
 
-        // MÃ HÓA TÊN TIẾNG VIỆT để tránh lỗi ký tự Unicode trên Header Location
+        // Sử dụng UTF8 để tránh bị lỗi ký tự
         String encodedName = URLEncoder.encode(fullName, StandardCharsets.UTF_8.toString());
 
         // Xây dựng URL Redirect về Frontend
@@ -59,7 +59,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .build()
                 .toUriString();
 
-        // Chuyển hướng trình duyệt
+      
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

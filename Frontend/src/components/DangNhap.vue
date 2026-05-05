@@ -9,6 +9,12 @@
       <div class="glass-box">
         <h1 class="brand-name">KESN STORE</h1>
         <p class="brand-tagline">SNEAKERS COLLECTION</p>
+        
+        <div class="back-home-wrap">
+          <router-link to="/" class="btn-back-home">
+            <i class="bi bi-arrow-left"></i> Quay lại Trang chủ
+          </router-link>
+        </div>
 
         <p v-if="registerSuccess" class="alert alert-success small mb-3 rounded-3 py-2 px-3">
           Đăng ký thành công. Vui lòng đăng nhập.
@@ -88,6 +94,7 @@
 <script>
 import { useAuthStore } from '../authStore'
 import { login } from '../api/services/authService'
+import Swal from 'sweetalert2'
 
 export default {
   name: "DangNhap",
@@ -116,7 +123,12 @@ export default {
         useAuthStore().login(user, token);
         this.$router.push('/');
       } catch (e) {
-        alert(e.response?.data?.message || 'Email hoặc mật khẩu không đúng!');
+        Swal.fire({
+          icon: 'error',
+          title: 'Đăng nhập thất bại',
+          text: e.response?.data?.message || 'Email hoặc mật khẩu không đúng!',
+          confirmButtonColor: '#000'
+        })
       } finally {
         this.loading = false;
       }
@@ -196,8 +208,25 @@ export default {
   font-size: 0.7rem; 
   letter-spacing: 5px; 
   color: #bbb; 
-  margin-bottom: 40px; 
+  margin-bottom: 20px; 
   text-transform: uppercase;
+}
+
+.back-home-wrap {
+  margin-bottom: 25px;
+}
+.btn-back-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.btn-back-home:hover {
+  color: #000;
 }
 
 /* INPUTS — dùng .auth-field thay vì .input-group (tránh xung đột Bootstrap flex) */

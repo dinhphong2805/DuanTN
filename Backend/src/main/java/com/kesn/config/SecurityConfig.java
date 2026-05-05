@@ -32,7 +32,6 @@ public class SecurityConfig {
     }
 
     /**
-     * Cho phép mọi cổng trên localhost / 127.0.0.1 (Vite đổi port) và IP LAN (nhóm test cùng mạng).
      * Không dùng danh sách origin cố định để tránh chỉ chạy được trên một máy/cổng.
      */
     @Bean
@@ -46,7 +45,7 @@ public class SecurityConfig {
         ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true); // Quan trọng cho OAuth2
+        config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
@@ -57,14 +56,14 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                // Filter kiểm tra admin của bạn vẫn giữ nguyên
+               
                 .addFilterBefore(adminAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép các endpoint liên quan đến auth và oauth2 mà không cần login
                         .requestMatchers("/api/auth/**", "/login/**", "/oauth2/**").permitAll()
-                        .anyRequest().permitAll() // Bạn đang để permitAll cho dự án, sau này nên siết lại
+                        .anyRequest().permitAll() 
                 )
-                // --- CẤU HÌNH GOOGLE LOGIN TẠI ĐÂY ---
+            
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService) // Xử lý lấy thông tin user từ Google

@@ -33,7 +33,7 @@ const routes = [
   { path: '/product', name: 'Search', component: SanPham },
   { path: '/product/:id', name: 'ProductDetail', component: ChiTietSanPham },
   { path: '/cart', name: 'Cart', component: GioHang },
-  { path: '/checkout', name: 'Checkout', component: Checkout },
+  { path: '/checkout', name: 'Checkout', component: Checkout, meta: { requiresAuth: true } },
   
   { path: '/payment-return', name: 'PaymentReturn', component: PaymentReturn },
 

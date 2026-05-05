@@ -353,7 +353,7 @@ async function placeOrder() {
       userId,
       address: fullAddress,
       total: total.value,
-      voucherCode: selectedVoucherCode.value || undefined,
+      voucherCode: voucherInput.value || undefined,
       items: cart.state.items.map(it => ({
         productId: it.id,
         productName: it.name,

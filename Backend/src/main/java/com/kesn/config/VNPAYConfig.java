@@ -6,23 +6,21 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 
 public class VNPAYConfig {
-    // 1. URL thanh toán Sandbox
+    // url thanh toán sandbox
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     
-    // 2. URL nhận kết quả (Phải khớp với Route bên Vue của bạn)
+    // url nhận kết quả
     public static String vnp_ReturnUrl = env("VNPAY_RETURN_URL", "http://localhost:5173/payment-return");
     
-    // 3. Thông tin terminal Sandbox
-    // Đã điền thông tin WV64SLHU và ADAAHH778O6BR46T0UNQ6HTHDMUZDMIZ vào giá trị mặc định (defaultValue)
+    // terminal code và secret của sandbox
     public static String vnp_TmnCode = env("VNPAY_TMN_CODE", "WV64SLHU");
     public static String vnp_HashSecret = env("VNPAY_HASH_SECRET", "ADAAHH778O6BR46T0UNQ6HTHDMUZDMIZ");
 
-    // 4. Các thông số phiên bản
     public static String vnp_Version = "2.1.0";
     public static String vnp_Command = "pay";
 
     /**
-     * Hàm băm dữ liệu HMAC SHA512 - Cực kỳ quan trọng để bảo mật
+     * Hàm này tạo ra 1 cái mã hóa bảo mật để bảo vệ thông tin trpng khi gửi cho bên thứ 3
      */
     public static String hmacSHA512(final String key, final String data) {
         try {

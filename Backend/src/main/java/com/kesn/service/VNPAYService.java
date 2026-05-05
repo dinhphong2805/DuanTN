@@ -29,7 +29,7 @@ public class VNPAYService {
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
         
-        // QUAN TRỌNG: KHÔNG ĐƯỢC CÓ DẤU CÁCH Ở ĐÂY
+
         vnp_Params.put("vnp_OrderInfo", "ThanhToanDonHang:" + vnp_TxnRef);
         
         vnp_Params.put("vnp_OrderType", "other");
